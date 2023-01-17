@@ -2,7 +2,7 @@
 ## Title: Craftility
 ## Notes: 
 ## SavedVariables: CraftilityDB
-## Author: Joshua Chase
+## Author: Shanxy
 ## Version: 0.1
 
 embeds.xml
