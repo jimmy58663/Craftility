@@ -17,18 +17,18 @@ Shortfalls:
 -Currently only able to allocate all materials of a single rank; cannot mix and match ranks
 
 In game screenshots (skinned by ElvUI):
-![Alt text](/Media/BlizzSchematic.png?raw=true)
+![Alt text](/Media/BlizzSchematic.jpg?raw=true)
 
 Blizzard UI with the added Sim Mode button.
 
-![Alt text](/Media/SimMode.png?raw=true)
+![Alt text](/Media/SimMode.jpg?raw=true)
 
 The Simulation Mode UI.
 
-![Alt text](/Media/OptionalReagents.png?raw=true)
+![Alt text](/Media/OptionalReagents.jpg?raw=true)
 
 An optional reagents selection list in Simulation Mode.
 
-![Alt text](/Media/PublicOrders.png?raw=true)
+![Alt text](/Media/PublicOrders.jpg?raw=true)
 
 The public orders page with the new toggle button highlighted.
