@@ -15,3 +15,9 @@ Features to come:
 
 Shortfalls:
 -Currently only able to allocate all materials of a single rank; cannot mix and match ranks
+
+In game screenshots:
+![Alt text](/Media/BlizzSchematic.png?raw=true)
+![Alt text](/Media/SimMode.png?raw=true)
+![Alt text](/Media/OptionalReagents.png?raw=true)
+![Alt text](/Media/PublicOrders.png?raw=true)
