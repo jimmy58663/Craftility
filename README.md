@@ -20,12 +20,15 @@ In game screenshots (skinned by ElvUI):
 ![Alt text](/Media/BlizzSchematic.png?raw=true)
 
 Blizzard UI with the added Sim Mode button.
+
 ![Alt text](/Media/SimMode.png?raw=true)
 
 The Simulation Mode UI.
+
 ![Alt text](/Media/OptionalReagents.png?raw=true)
 
 An optional reagents selection list in Simulation Mode.
+
 ![Alt text](/Media/PublicOrders.png?raw=true)
 
 The public orders page with the new toggle button highlighted.
