@@ -1,0 +1,13 @@
+## Interface: 100002
+## Title: Craftility
+## Notes: 
+## SavedVariables: CraftilityDB
+## Author: Joshua Chase
+## Version: 0.1
+
+embeds.xml
+
+Craftility.lua
+
+Modules/CraftilitySim.lua
+##Modules/CraftilitySim.old.lua
