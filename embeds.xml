@@ -10,4 +10,6 @@
     <Include file="Libs\AceTimer-3.0\AceTimer-3.0.xml" />
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml" />
     <Include file="Libs\AceHook-3.0\AceHook-3.0.xml" />
+    <Include file="Libs\AceSerializer-3.0\AceSerializer-3.0.xml" />
+    <Include file="Libs\LibCompress\lib.xml" />
 </Ui>
