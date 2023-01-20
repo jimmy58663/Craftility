@@ -2,12 +2,16 @@ local addon, CraftilityNS = ...
 local _G = _G
 local E, L, V, P, G = nil --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB from ElvUI when frames are initialized
 local S = nil -- Import: ElvUI Skins module when frames are initialized
+local AceSerializer = LibStub:GetLibrary("AceSerializer-3.0")
+local libC = LibStub:GetLibrary("LibCompress")
+local EncodeTable = libC:GetAddonEncodeTable()
 local CraftingPage = _G.ProfessionsFrame.CraftingPage
 local Professions = _G.Professions
 
-CraftilitySim = CraftilityNS.Craftility:NewModule("CraftilitySim", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
+local CraftilitySim = CraftilityNS.Craftility:NewModule("CraftilitySim", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 CraftilityNS.CraftilitySim = CraftilitySim
 CraftilitySim.IsInitialized = false
+CraftilitySim.RecraftOverride = false
 
 function CraftilitySim:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
@@ -76,6 +80,22 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         self.R3MatsButton.Text:SetText("R3 Mats")
         self.R3MatsButton:SetScript("OnClick", function() CraftilitySim:ChangeMaterials(3) end)
 
+        self.RecraftCheckBox = CreateFrame("CheckButton", "Craftility_RecraftCheckBox", self.SchematicForm, "UICheckButtonTemplate")
+        self.RecraftCheckBox:SetSize(26, 26)
+        self.RecraftCheckBox:SetPoint("LEFT", self.HideSimButton, "TOPLEFT", 0, 25)
+        self.RecraftCheckBox.text:SetText("  Show Recraft")
+        self.RecraftCheckBox:SetScript("OnClick", function () 
+            local checked = CraftilitySim.RecraftCheckBox:GetChecked()
+            if not checked then
+                Professions:EraseRecraftingTransitionData()
+                local previousRecipeID = CraftingPage.RecipeList:GetPreviousRecipeID()
+                local recipeInfo = _G.C_TradeSkillUI.GetRecipeInfo(previousRecipeID)
+                CraftingPage.SchematicForm.currentRecipeInfo = recipeInfo
+            end
+            CraftilitySim.RecraftOverride = checked
+            CraftilitySim:HookInit()
+        end)
+
         self.IsInitialized = true
     end
     if E == nil or not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
@@ -94,16 +114,41 @@ function CraftilitySim:HookInit()
     CraftilitySim.currentRecipeInfo = CraftingPage.SchematicForm:GetRecipeInfo()
     CraftilitySim.SchematicForm:ClearTransaction()
     if CraftilitySim.currentRecipeInfo ~= nil then
-        CraftilitySim.SchematicForm:Init(CraftilitySim.currentRecipeInfo, CraftilitySim.currentRecipeInfo.isRecraft)
+        if CraftilitySim.RecraftOverride then
+            CraftilitySim.SchematicForm:Init(CraftilitySim.currentRecipeInfo, CraftilitySim.RecraftOverride)
+            CraftilitySim.SchematicForm.recraftSlot:Hide()
+            CraftilitySim.SchematicForm.RecraftingOutputText:Hide()
+            CraftilitySim.SchematicForm.RecraftingRequiredTools:Hide()
+            CraftilitySim.SchematicForm.OutputIcon:Show()
+            CraftilitySim.SchematicForm.OutputText:Show()
+            CraftilitySim.SchematicForm.RequiredTools:Show()
+        else
+            CraftilitySim.SchematicForm:Init(CraftilitySim.currentRecipeInfo)
+        end
         CraftilitySim.SchematicForm:UpdateDetailsStats()
         CraftilitySim:HideUnused()
+        
         if not CraftilitySim.currentRecipeInfo.supportsQualities then
             CraftilitySim.ShowSimButton:Hide()
         elseif CraftilitySim.currentRecipeInfo.supportsQualities and not CraftilitySim.ShowSimButton:IsShown() then
             CraftilitySim.ShowSimButton:Show()
         end
+
         if CraftilitySim.SchematicForm:IsShown() then
             CraftilitySim:ChangeMaterials(1)
+            if CraftilitySim.currentRecipeInfo.recipeID == 385304 then
+                CraftilitySim.R1MatsButton:Hide()
+                CraftilitySim.R2MatsButton:Hide()
+                CraftilitySim.R3MatsButton:Hide()
+                CraftilitySim.RecraftCheckBox:Hide()
+                CraftilitySim.HideSimButton:Hide()
+            else
+                CraftilitySim.R1MatsButton:Show()
+                CraftilitySim.R2MatsButton:Show()
+                CraftilitySim.R3MatsButton:Show()
+                CraftilitySim.RecraftCheckBox:Show()
+                CraftilitySim.HideSimButton:Show()
+            end
         end
     end
 end
@@ -221,6 +266,10 @@ function CraftilitySim:ElvSkinning(CraftilitySim)
 
     local R3MatsButton = CraftilitySim.R3MatsButton
     S:HandleButton(R3MatsButton)
+
+    local RecraftCheckBox = CraftilitySim.RecraftCheckBox
+    S:HandleCheckBox(RecraftCheckBox)
+    RecraftCheckBox:SetSize(24, 24)
 end
 
 function CraftilitySim:ShowSimMode()
@@ -405,4 +454,25 @@ function CraftilitySim:ChangeMaterials(materialRank)
     end
     CraftilitySim.SchematicForm:UpdateAllSlots()
     CraftilitySim.SchematicForm:UpdateDetailsStats()
+end
+
+function CraftilitySim:SerializeCraft(data)
+    local serializedData = AceSerializer:Serialize(data)
+    local compressedData = libC:Compress(serializedData)
+    local encodedData = EncodeTable:Encode(compressedData)
+    CraftilitySim:Print(encodedData)
+end
+
+function CraftilitySim:DeserializeCraft(encodedData)
+    local compressedData = EncodeTable:Decode(encodedData)
+    local decompressSuccess, serializedData = libC:Decompress(compressedData)
+    if not decompressSuccess then
+        error("Craftility: Error decompressing: " .. serializedData)
+    end
+
+    local deserialzeSuccess, data = AceSerializer:Deserialize(serializedData)
+    if not deserialzeSuccess then
+        error("Craftility: Error deserializing: " .. data)
+    end
+    CraftilitySim:Print(data)
 end
