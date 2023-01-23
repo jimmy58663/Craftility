@@ -3,8 +3,6 @@ WoW Addon for crafting utility.
 
 Current functionality:
 
--Provides a toggle button for auto-searching public crafting orders
---New orders play a sound when found
 -Allows for simulating crafts with your existing stats
 --Different ranks of materials are selectable
 --Optional and Finishing reagents are selectable
@@ -30,7 +28,3 @@ The Simulation Mode UI.
 ![Alt text](/Media/OptionalReagents.jpg?raw=true)
 
 An optional reagents selection list in Simulation Mode.
-
-![Alt text](/Media/PublicOrders.jpg?raw=true)
-
-The public orders page with the new toggle button highlighted.
