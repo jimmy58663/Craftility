@@ -1,6 +1,7 @@
 local addon, CraftilityNS = ...
 local _G = _G
-local E, L, V, P, G = nil --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB from ElvUI when frames are initialized
+local ElvUI = nil -- Import: ElvUI if it is loaded when frames are initialized
+local E = nil -- Import: ElvUI Engine module when frames are initialized
 local S = nil -- Import: ElvUI Skins module when frames are initialized
 local AceSerializer = LibStub:GetLibrary("AceSerializer-3.0")
 local libC = LibStub:GetLibrary("LibCompress")
@@ -51,11 +52,6 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         self.SchematicForm.Background:SetSize(799, 553)
         self.SchematicForm.Background:SetAtlas("Professions-Recipe-Background-".._G.ProfessionsFrame.professionInfo.displayName, false)
 
-        if E == nil then
-            E, L, V, P, G = unpack(ElvUI) --Import: Engine, Locales, PrivateDB, ProfileDB, GlobalDB
-            S = E:GetModule("Skins")
-        end
-
         self.HideSimButton = CreateFrame("Button", "Craftility_HideSimButton", self.SchematicForm, "UIPanelButtonTemplate")
         self.HideSimButton:SetSize(120, 22)
         self.HideSimButton:SetPoint("LEFT", self.SchematicForm.Details, "BOTTOMLEFT", -125, 30)
@@ -97,6 +93,15 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         end)
 
         self.IsInitialized = true
+
+        if ElvUI == nil then
+            ElvUI = _G.ElvUI
+        end
+
+        if ElvUI then
+            E = _G.ElvUI[1] --Import: Engine
+            S = E:GetModule("Skins")
+        end
     end
     if E == nil or not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
         self.SchematicForm.Background:SetAtlas("Professions-Recipe-Background-".._G.ProfessionsFrame.professionInfo.displayName, false)
