@@ -1,9 +1,9 @@
-## Interface: 100002
+## Interface: 100005
 ## Title: Craftility
 ## Notes: 
 ## SavedVariables: CraftilityDB
 ## Author: Shanxy
-## Version: 0.1
+## Version: 0.4
 
 embeds.xml
 

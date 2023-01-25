@@ -19,8 +19,7 @@ function CraftilitySim:OnEnable()
 end
 
 function CraftilitySim:TRADE_SKILL_SHOW()
-    self.Profession = _G.ProfessionsFrame.professionInfo.profession
-
+    local professionInfo = Professions:GetProfessionInfo()
     if not self.IsInitialized then
         self.ShowSimButton = CreateFrame("Button", "Craftility_ShowSimButton", CraftingPage.SchematicForm, "UIPanelButtonTemplate")
         self.ShowSimButton:SetSize(120, 22)
@@ -46,11 +45,12 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         self.SchematicForm.Details.QualityMeter.Right:SetFrameLevel(qualityFrameLevel + 7)
         self.SchematicForm.Details:Layout()
         CraftilitySim:SecureHook(CraftingPage.SchematicForm,"Init", CraftilitySim.HookInit)
+        CraftilitySim:SecureHook(CraftilitySim.SchematicForm, "UpdateDetailsStats", CraftilitySim.UpdateInspirationIcon)
 
         self.SchematicForm.Background = self.SchematicForm:CreateTexture("Background", "BACKGROUND")
         self.SchematicForm.Background:SetPoint("TOPLEFT", self.SchematicForm, "TOPLEFT")
         self.SchematicForm.Background:SetSize(799, 553)
-        self.SchematicForm.Background:SetAtlas("Professions-Recipe-Background-".._G.ProfessionsFrame.professionInfo.displayName, false)
+        self.SchematicForm.Background:SetAtlas("Professions-Recipe-Background-"..professionInfo.displayName, false)
 
         self.HideSimButton = CreateFrame("Button", "Craftility_HideSimButton", self.SchematicForm, "UIPanelButtonTemplate")
         self.HideSimButton:SetSize(120, 22)
@@ -104,7 +104,7 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         end
     end
     if E == nil or not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
-        self.SchematicForm.Background:SetAtlas("Professions-Recipe-Background-".._G.ProfessionsFrame.professionInfo.displayName, false)
+        self.SchematicForm.Background:SetAtlas("Professions-Recipe-Background-"..professionInfo.displayName, false)
     else
         self:ElvSkinning(self)
     end
@@ -135,8 +135,11 @@ function CraftilitySim:HookInit()
         
         if not CraftilitySim.currentRecipeInfo.supportsQualities then
             CraftilitySim.ShowSimButton:Hide()
-        elseif CraftilitySim.currentRecipeInfo.supportsQualities and not CraftilitySim.ShowSimButton:IsShown() then
-            CraftilitySim.ShowSimButton:Show()
+        elseif CraftilitySim.currentRecipeInfo.supportsQualities then
+            if not CraftilitySim.ShowSimButton:IsShown() then
+                CraftilitySim.ShowSimButton:Show()
+            end
+            CraftilitySim:UpdateInspirationIcon()
         end
 
         if CraftilitySim.SchematicForm:IsShown() then
@@ -480,4 +483,36 @@ function CraftilitySim:DeserializeCraft(encodedData)
         error("Craftility: Error deserializing: " .. data)
     end
     CraftilitySim:Print(data)
+end
+
+function CraftilitySim:UpdateInspirationIcon()
+    local Details = CraftilitySim.SchematicForm.Details
+    local operationInfo = Details.operationInfo
+    local craftingQuality = operationInfo.craftingQuality
+    local maxQuality = CraftilitySim.currentRecipeInfo.maxQuality
+
+    local inspirationPercent = nil
+    local inspirationSkill = nil
+    for _, bonusStat in ipairs(operationInfo.bonusStats) do
+        if bonusStat.bonusStatName == "Inspiration" then
+            inspirationPercent, inspirationSkill = bonusStat.ratingDescription:match("(%d*%.%d*%%)%D*(%d[%d]*)")
+            inspirationSkill = tonumber(inspirationSkill)
+        end
+    end
+
+    if craftingQuality ~= maxQuality and (operationInfo.baseSkill + operationInfo.bonusSkill + inspirationSkill) >= operationInfo.upperSkillTreshold then
+        craftingQuality = craftingQuality + 1
+    end
+
+    if not CraftilitySim.InspirationIcon then
+        CraftilitySim.InspirationIcon = CreateFrame("Frame", "Craftility_InspirationIcon", Details, "ProfessionsQualityMeterCapTemplate")
+        CraftilitySim.InspirationIcon.text = CraftilitySim.InspirationIcon:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        CraftilitySim.InspirationIcon.text:SetSize("130", "20")
+        CraftilitySim.InspirationIcon.text:SetPoint("RIGHT", CraftilitySim.InspirationIcon, "LEFT")
+        CraftilitySim.InspirationIcon.text:SetText("Inspiration Result: ")
+    end
+    CraftilitySim.InspirationIcon.AppearIcon:SetAtlas(("GemAppear_T%d_Flipbook"):format(craftingQuality))
+    CraftilitySim.InspirationIcon:ClearAllPoints()
+    CraftilitySim.InspirationIcon:SetPoint("CENTER", Details, "BOTTOM", 0, -14)
+    CraftilitySim.InspirationIcon.AppearIcon.Anim:Restart()
 end
