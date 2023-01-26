@@ -11,8 +11,20 @@ local Professions = _G.Professions
 
 local CraftilitySim = CraftilityNS.Craftility:NewModule("CraftilitySim", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 CraftilityNS.CraftilitySim = CraftilitySim
-CraftilitySim.IsInitialized = false
 CraftilitySim.RecraftOverride = false
+
+local IgnoreRecipes = {
+    --Recipe IDs to hide simulation buttons on
+    385304, --BS Recraft
+    389190, --Alch Recraft
+    389192, --Eng Recraft
+    389193, --Inscrip Recraft
+    389194, --JC Recraft
+    389195, --LW Recraft
+    382981, --Inscrip Milling
+    395696, --JC Crushing
+    374627 --JC Prospecting
+}
 
 function CraftilitySim:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
@@ -20,7 +32,7 @@ end
 
 function CraftilitySim:TRADE_SKILL_SHOW()
     local professionInfo = Professions:GetProfessionInfo()
-    if not self.IsInitialized then
+    if not self.SchematicForm then
         self.ShowSimButton = CreateFrame("Button", "Craftility_ShowSimButton", CraftingPage.SchematicForm, "UIPanelButtonTemplate")
         self.ShowSimButton:SetSize(120, 22)
         self.ShowSimButton:SetPoint("LEFT", CraftingPage.SchematicForm.Details, "BOTTOMLEFT", -125, 30)
@@ -92,8 +104,6 @@ function CraftilitySim:TRADE_SKILL_SHOW()
             CraftilitySim:HookInit()
         end)
 
-        self.IsInitialized = true
-
         if ElvUI == nil then
             ElvUI = _G.ElvUI
         end
@@ -133,7 +143,8 @@ function CraftilitySim:HookInit()
         CraftilitySim.SchematicForm:UpdateDetailsStats()
         CraftilitySim:HideUnused()
         
-        if not CraftilitySim.currentRecipeInfo.supportsQualities then
+        local recipeID = CraftilitySim.currentRecipeInfo.recipeID
+        if not CraftilitySim.currentRecipeInfo.supportsQualities or tContains(IgnoreRecipes, recipeID) then
             CraftilitySim.ShowSimButton:Hide()
         elseif CraftilitySim.currentRecipeInfo.supportsQualities then
             if not CraftilitySim.ShowSimButton:IsShown() then
@@ -143,14 +154,14 @@ function CraftilitySim:HookInit()
         end
 
         if CraftilitySim.SchematicForm:IsShown() then
-            CraftilitySim:ChangeMaterials(1)
-            if CraftilitySim.currentRecipeInfo.recipeID == 385304 then
+            if tContains(IgnoreRecipes, recipeID) then
                 CraftilitySim.R1MatsButton:Hide()
                 CraftilitySim.R2MatsButton:Hide()
                 CraftilitySim.R3MatsButton:Hide()
                 CraftilitySim.RecraftCheckBox:Hide()
                 CraftilitySim.HideSimButton:Hide()
             else
+                CraftilitySim:ChangeMaterials(1)
                 CraftilitySim.R1MatsButton:Show()
                 CraftilitySim.R2MatsButton:Show()
                 CraftilitySim.R3MatsButton:Show()
@@ -486,6 +497,9 @@ function CraftilitySim:DeserializeCraft(encodedData)
 end
 
 function CraftilitySim:UpdateInspirationIcon()
+    if not CraftilitySim.currentRecipeInfo.supportsQualities then
+        return
+    end
     local Details = CraftilitySim.SchematicForm.Details
     local operationInfo = Details.operationInfo
     local craftingQuality = operationInfo.craftingQuality
