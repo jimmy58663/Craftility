@@ -504,6 +504,7 @@ function CraftilitySim:UpdateInspirationIcon()
     local operationInfo = Details.operationInfo
     local craftingQuality = operationInfo.craftingQuality
     local maxQuality = CraftilitySim.currentRecipeInfo.maxQuality
+    local maxDifficulty = operationInfo.baseDifficulty + operationInfo.bonusDifficulty
 
     local inspirationPercent = nil
     local inspirationSkill = nil
@@ -514,8 +515,27 @@ function CraftilitySim:UpdateInspirationIcon()
         end
     end
 
-    if craftingQuality ~= maxQuality and (operationInfo.baseSkill + operationInfo.bonusSkill + inspirationSkill) >= operationInfo.upperSkillTreshold then
-        craftingQuality = craftingQuality + 1
+    if craftingQuality ~= maxQuality then
+        local inspiredSkill = operationInfo.baseSkill + operationInfo.bonusSkill + inspirationSkill
+        if maxQuality == 5 then
+            if inspiredSkill >= maxDifficulty then 
+                craftingQuality = maxQuality
+            elseif inspiredSkill >= (maxDifficulty * .8) then
+                craftingQuality = maxQuality - 1
+            elseif inspiredSkill >= (maxDifficulty * .5) then
+                craftingQuality = maxQuality - 2
+            elseif inspiredSkill >= (maxDifficulty * .2) then
+                craftingQuality = maxQuality - 3
+            else
+                craftingQuality = maxQuality - 4
+            end
+        elseif maxQuality == 3 then
+            if inspiredSkill >= maxDifficulty then 
+                craftingQuality = maxQuality
+            elseif inspiredSkill >= operationInfo.upperSkillTreshold then
+                craftingQuality = craftingQuality + 1
+            end
+        end
     end
 
     if not CraftilitySim.InspirationIcon then
