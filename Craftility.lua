@@ -138,37 +138,44 @@ function Craftility:ParseOrders()
     for i=1, select("#", OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren()) do
         local order = select(i, OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren())
         local orderType = order.option.orderType
-        if not tContains(self.OrdersSeen[orderType], order.option.orderID) then
-            tinsert(self.OrdersSeen[orderType], order.option.orderID)
+        if not tContains(Craftility.OrdersSeen[orderType], order.option.orderID) then
+            tinsert(Craftility.OrdersSeen[orderType], order.option.orderID)
             FlashClientIcon()
-            PlaySound(self.db.profile.SoundByteId, "SFX")
-            if orderType == Enum.CraftingOrderType.Public then
+            PlaySound(Craftility.db.profile.SoundByteId, "SFX")
+            --[[if orderType == Enum.CraftingOrderType.Public then
                 OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
             elseif orderType == Enum.CraftingOrderType.Guild then
                 OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
             elseif orderType == Enum.CraftingOrderType.Personal then
                 OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-            end
+            end]]
         end
     end
 end
 
-function dumpTable(table, depth)
+function CraftilityNS:dumpTable(table, depth)
     if depth == nil then
         depth = 0
     end
 
-    if (depth > 200) then
-        print("Error: Depth > 200 in dumpTable()")
+    if (depth > 20) then
         return
     end
     
     for k,v in pairs(table) do
         if (type(v) == "table") then
-            print(string.rep("  ", depth)..k..":")
-            dumpTable(v, depth+1)
+            print(string.rep(" ", depth)..k..":")
+            CraftilityNS:dumpTable(v, depth+1)
+		elseif (type(k) == "table") then
+			CraftilityNS:dumpTable(k, depth+1)
         else
-            print(string.rep("  ", depth)..k..": ",v)
+            if (type(v) == "function") then
+				print(string.rep(" ", depth)..k..": <function>")
+			elseif (type(v) == "userdata") then
+				print(string.rep(" ", depth)..k..": <userdata>")
+			else
+				print(string.rep(" ", depth)..k..": ",v)	
+			end
         end
     end
 end
