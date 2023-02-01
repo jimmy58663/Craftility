@@ -479,7 +479,7 @@ function CraftilitySim:SerializeCraft(data)
     local serializedData = AceSerializer:Serialize(data)
     local compressedData = libC:Compress(serializedData)
     local encodedData = EncodeTable:Encode(compressedData)
-    CraftilitySim:Print(encodedData)
+    return encodedData
 end
 
 function CraftilitySim:DeserializeCraft(encodedData)
@@ -493,7 +493,7 @@ function CraftilitySim:DeserializeCraft(encodedData)
     if not deserialzeSuccess then
         error("Craftility: Error deserializing: " .. data)
     end
-    CraftilitySim:Print(data)
+    return data
 end
 
 function CraftilitySim:UpdateInspirationIcon()
@@ -549,4 +549,13 @@ function CraftilitySim:UpdateInspirationIcon()
     CraftilitySim.InspirationIcon:ClearAllPoints()
     CraftilitySim.InspirationIcon:SetPoint("CENTER", Details, "BOTTOM", 0, -14)
     CraftilitySim.InspirationIcon.AppearIcon.Anim:Restart()
+end
+
+function CraftilitySim:ExportCraft()
+    local craftData = {}
+    craftData.recipeInfo = CraftilitySim.SchematicForm.currentRecipeInfo
+    craftData.transaction = CraftilitySim.SchematicForm.transaction
+    craftData.isRecraft = craftData.transaction.isRecraft
+    local encodedData = CraftilitySim:SerializeCraft(craftData)
+    CraftilitySim:Print(encodedData)
 end
