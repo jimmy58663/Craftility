@@ -124,9 +124,13 @@ function CraftilitySim:TRADE_SKILL_SHOW()
     end
 end
 
-function CraftilitySim:HookInit()
+function CraftilitySim:HookInit(recipeInfo)
     --Logic is found in BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
-    CraftilitySim.currentRecipeInfo = CraftingPage.SchematicForm:GetRecipeInfo()
+    if not recipeInfo then
+        CraftilitySim.currentRecipeInfo = CraftingPage.SchematicForm:GetRecipeInfo()
+    else
+        CraftilitySim.currentRecipeInfo = recipeInfo
+    end
     CraftilitySim.SchematicForm:ClearTransaction()
     if CraftilitySim.currentRecipeInfo ~= nil then
         if CraftilitySim.RecraftOverride then
@@ -477,9 +481,10 @@ end
 
 function CraftilitySim:SerializeCraft(data)
     local serializedData = AceSerializer:Serialize(data)
-    local compressedData = libC:Compress(serializedData)
-    local encodedData = EncodeTable:Encode(compressedData)
-    return encodedData
+    --local compressedData = libC:Compress(serializedData)
+    --local encodedData = EncodeTable:Encode(compressedData)
+    --return encodedData
+    return serializedData
 end
 
 function CraftilitySim:DeserializeCraft(encodedData)
@@ -554,8 +559,39 @@ end
 function CraftilitySim:ExportCraft()
     local craftData = {}
     craftData.recipeInfo = CraftilitySim.SchematicForm.currentRecipeInfo
-    craftData.transaction = CraftilitySim.SchematicForm.transaction
-    craftData.isRecraft = craftData.transaction.isRecraft
+    craftData.transactionInfo = {}
+    for index, item in pairs(CraftilitySim.SchematicForm.transaction.reagentTbls) do
+        local allocs = {}
+        for i, alloc in pairs(item.allocations.allocs) do
+            allocs[i] = {
+                reagent = alloc.reagent,
+                quantity = alloc.quantity
+            }
+        end
+        
+        craftData.transactionInfo[item.reagentSlotSchematic.slotIndex] = {
+            allocs = allocs
+        }
+    end
+
+    craftData.isRecraft = CraftilitySim.SchematicForm.transaction.isRecraft
     local encodedData = CraftilitySim:SerializeCraft(craftData)
-    CraftilitySim:Print(encodedData)
+    --print(encodedData)
+    return encodedData
+end
+
+function CraftilitySim:ImportCraft(encodedData)
+    local craftData = CraftilitySim:DeserializeCraft(encodedData)
+    CraftilitySim.RecraftOverride = craftData.isRecraft
+    CraftilitySim:HookInit(craftData.RecipeInfo)
+    for slot in CraftilitySim.SchematicForm.reagentSlotPool:EnumerateActive() do
+        local slotIndex = slot:GetSlotIndex()
+        if craftData.transactionInfo[slotIndex].allocs then
+            for i, alloc in pairs(craftData.transactionInfo[slotIndex].allocs) do
+                local reagent = alloc.reagent
+                local quantity = alloc.quantity
+                CraftilitySim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagent, quantity)
+            end
+        end
+    end
 end
