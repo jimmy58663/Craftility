@@ -155,6 +155,7 @@ function CraftilitySim:HookInit(recipeInfo)
                 CraftilitySim.ShowSimButton:Show()
             end
             CraftilitySim:UpdateInspirationIcon()
+            CraftilitySim:UpdateSkillVarianceIcon()
         end
 
         if CraftilitySim.SchematicForm:IsShown() then
@@ -546,7 +547,7 @@ function CraftilitySim:UpdateInspirationIcon()
     if not CraftilitySim.InspirationIcon then
         CraftilitySim.InspirationIcon = CreateFrame("Frame", "Craftility_InspirationIcon", Details, "ProfessionsQualityMeterCapTemplate")
         CraftilitySim.InspirationIcon.text = CraftilitySim.InspirationIcon:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-        CraftilitySim.InspirationIcon.text:SetSize("130", "20")
+        CraftilitySim.InspirationIcon.text:SetSize("140", "20")
         CraftilitySim.InspirationIcon.text:SetPoint("RIGHT", CraftilitySim.InspirationIcon, "LEFT")
         CraftilitySim.InspirationIcon.text:SetText("Inspiration Result: ")
     end
@@ -554,6 +555,57 @@ function CraftilitySim:UpdateInspirationIcon()
     CraftilitySim.InspirationIcon:ClearAllPoints()
     CraftilitySim.InspirationIcon:SetPoint("CENTER", Details, "BOTTOM", 0, -14)
     CraftilitySim.InspirationIcon.AppearIcon.Anim:Restart()
+    CraftilitySim:UpdateSkillVarianceIcon()
+end
+
+function CraftilitySim:UpdateSkillVarianceIcon()
+    if not CraftilitySim.currentRecipeInfo.supportsQualities then
+        return
+    end
+    local Details = CraftilitySim.SchematicForm.Details
+    local operationInfo = Details.operationInfo
+    local craftingQuality = operationInfo.craftingQuality
+    local maxQuality = CraftilitySim.currentRecipeInfo.maxQuality
+    local maxDifficulty = operationInfo.baseDifficulty + operationInfo.bonusDifficulty
+    local maxSkillVariance = maxDifficulty * .05
+    local maxSkill = operationInfo.baseSkill + operationInfo.bonusSkill + maxSkillVariance
+
+    local skillIcon = craftingQuality
+    if maxSkill >= operationInfo.upperSkillTreshold and craftingQuality ~= maxQuality then
+        skillIcon = craftingQuality + 1
+    end
+
+    if not CraftilitySim.SkillVarianceIcon then
+        CraftilitySim.SkillVarianceIcon = CreateFrame("Frame", "Craftility_SkillVarianaceIcon", Details, "ProfessionsQualityMeterCapTemplate")
+        CraftilitySim.SkillVarianceIcon.text = CraftilitySim.SkillVarianceIcon:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        CraftilitySim.SkillVarianceIcon.text:SetSize("140", "20")
+        CraftilitySim.SkillVarianceIcon.text:SetPoint("RIGHT", CraftilitySim.SkillVarianceIcon, "LEFT")
+        CraftilitySim.SkillVarianceIcon.text:SetText("Skill Variance: ")
+
+        CraftilitySim.SkillVarianceIcon:SetScript("OnEnter", function(icon) 
+            GameTooltip:SetOwner(icon, "ANCHOR_RIGHT")
+            GameTooltip_SetTitle(GameTooltip, "EXPERIMENTAL:")
+            GameTooltip_AddNormalLine(GameTooltip, "Craft with up to "..(math.floor(((CraftilitySim.SchematicForm.Details.operationInfo.baseDifficulty + CraftilitySim.SchematicForm.Details.operationInfo.bonusDifficulty)*.05))).." additional skill.")
+            GameTooltip:Show()
+        end)
+
+        CraftilitySim.SkillVarianceIcon:SetScript("OnLeave", GameTooltip_Hide)
+    end
+
+    local chance = "100%"
+    if maxSkill >= operationInfo.upperSkillTreshold and craftingQuality ~= maxQuality then
+        local chanceSteps = 100 / maxSkillVariance
+        local bottomVariance = operationInfo.upperSkillTreshold - maxSkillVariance - 1
+        local skillDifference = (operationInfo.baseSkill + operationInfo.bonusSkill) - bottomVariance
+        local percent = skillDifference * chanceSteps
+        chance = math.floor(percent).."%"
+    end
+
+    CraftilitySim.SkillVarianceIcon.text:SetText("Skill Variance: "..chance.." ")
+    CraftilitySim.SkillVarianceIcon.AppearIcon:SetAtlas(("GemAppear_T%d_Flipbook"):format(skillIcon))
+    CraftilitySim.SkillVarianceIcon:ClearAllPoints()
+    CraftilitySim.SkillVarianceIcon:SetPoint("CENTER", Details, "BOTTOM", 0, -43)
+    CraftilitySim.SkillVarianceIcon.AppearIcon.Anim:Restart()
 end
 
 function CraftilitySim:ExportCraft()
