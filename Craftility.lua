@@ -131,50 +131,67 @@ end
 
 function Craftility:SearchOrders()
     OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-    self:ParseOrders()
+    self:ParseOrders(OrdersPage:GetBrowseType())
 end
 
-function Craftility:ParseOrders()
-    for i=1, select("#", OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren()) do
-        local order = select(i, OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren())
-        local orderType = order.option.orderType
-        if not tContains(Craftility.OrdersSeen[orderType], order.option.orderID) then
-            tinsert(Craftility.OrdersSeen[orderType], order.option.orderID)
-            FlashClientIcon()
-            PlaySound(Craftility.db.profile.SoundByteId, "SFX")
-            --[[if orderType == Enum.CraftingOrderType.Public then
-                OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-            elseif orderType == Enum.CraftingOrderType.Guild then
-                OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-            elseif orderType == Enum.CraftingOrderType.Personal then
-                OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-            end]]
+function Craftility:ParseOrders(browseType)
+    local orderCount = select("#", OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren())
+    if browseType == 1 then    
+        for i=1, orderCount do
+            local order = select(i, OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren())
+			local orderType = order.option.orderType
+            if not tContains(Craftility.OrdersSeen[orderType], order.option.orderID) then
+                tinsert(Craftility.OrdersSeen[orderType], order.option.orderID)
+                FlashClientIcon()
+                PlaySound(Craftility.db.profile.SoundByteId, "SFX")
+                --[[if orderType == Enum.CraftingOrderType.Public then
+                    OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
+                elseif orderType == Enum.CraftingOrderType.Guild then
+                    OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
+                elseif orderType == Enum.CraftingOrderType.Personal then
+                    OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
+                end]]
+            end
         end
+    elseif browseType == 2 then
+        local orderList = {}
+		for i=1, orderCount do
+			local order = select(i, OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren())
+			tinsert(orderList, order)
+        end
+		for i, order in pairs(orderList) do
+			OrdersPage:RequestOrders(order.option.skillLineAbilityID, false, false)
+            self:ParseOrders(1)
+		end
     end
 end
 
-function CraftilityNS:dumpTable(table, depth)
-    if depth == nil then
-        depth = 0
+function CraftilityNS:dumpTable(table, maxDepth, currentDepth)
+    if currentDepth == nil then
+        currentDepth = 0
     end
 
-    if (depth > 20) then
+    if maxDepth == nil then
+        maxDepth = 20
+    end
+
+    if (currentDepth > maxDepth) then
         return
     end
     
     for k,v in pairs(table) do
-        if (type(v) == "table") then
-            print(string.rep(" ", depth)..k..":")
-            CraftilityNS:dumpTable(v, depth+1)
-		elseif (type(k) == "table") then
-			CraftilityNS:dumpTable(k, depth+1)
+        if (type(k) == "table") then
+			CraftilityNS:dumpTable(k, maxDepth, currentDepth+1)
+        elseif (type(v) == "table") then
+            print(string.rep(" ", currentDepth)..k..":")
+            CraftilityNS:dumpTable(v, maxDepth, currentDepth+1)
         else
             if (type(v) == "function") then
-				print(string.rep(" ", depth)..k..": <function>")
+				print(string.rep(" ", currentDepth)..k..": <function>")
 			elseif (type(v) == "userdata") then
-				print(string.rep(" ", depth)..k..": <userdata>")
+				print(string.rep(" ", currentDepth)..k..": <userdata>")
 			else
-				print(string.rep(" ", depth)..k..": ",v)	
+				print(string.rep(" ", currentDepth)..k..": ",v)	
 			end
         end
     end
