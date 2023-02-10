@@ -131,38 +131,23 @@ end
 
 function Craftility:SearchOrders()
     OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-    self:ParseOrders(OrdersPage:GetBrowseType())
+    if OrdersPage:GetBrowseType() == 2 then --Buckets are returned
+        Craftility:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
+    elseif OrdersPage:GetBrowseType() == 1 then --Orders are returned
+        local orders = C_CraftingOrders.GetCrafterOrders()
+        self:ParseOrders(orders)
+    end
 end
 
-function Craftility:ParseOrders(browseType)
-    local orderCount = select("#", OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren())
-    if browseType == 1 then    
-        for i=1, orderCount do
-            local order = select(i, OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren())
-			local orderType = order.option.orderType
-            if not tContains(Craftility.OrdersSeen[orderType], order.option.orderID) then
-                tinsert(Craftility.OrdersSeen[orderType], order.option.orderID)
-                FlashClientIcon()
-                PlaySound(Craftility.db.profile.SoundByteId, "SFX")
-                --[[if orderType == Enum.CraftingOrderType.Public then
-                    OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-                elseif orderType == Enum.CraftingOrderType.Guild then
-                    OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-                elseif orderType == Enum.CraftingOrderType.Personal then
-                    OrdersPage:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
-                end]]
-            end
+function Craftility:ParseOrders(orders)
+    for i, order in pairs(orders) do
+        local orderType = order.orderType
+        local orderID = order.orderID
+        if not tContains(Craftility.OrdersSeen[orderType], orderID) then
+            tinsert(Craftility.OrdersSeen[orderType], orderID)
+            FlashClientIcon()
+            PlaySound(Craftility.db.profile.SoundByteId, "SFX")
         end
-    elseif browseType == 2 then
-        local orderList = {}
-		for i=1, orderCount do
-			local order = select(i, OrdersPage.BrowseFrame.OrderList.ScrollBox.ScrollTarget:GetChildren())
-			tinsert(orderList, order)
-        end
-		for i, order in pairs(orderList) do
-			OrdersPage:RequestOrders(order.option.skillLineAbilityID, false, false)
-            self:ParseOrders(1)
-		end
     end
 end
 
@@ -194,5 +179,56 @@ function CraftilityNS:dumpTable(table, maxDepth, currentDepth)
 				print(string.rep(" ", currentDepth)..k..": ",v)	
 			end
         end
+    end
+end
+
+function Craftility:RequestOrders(selectedSkillLineAbility, searchFavorites, initialNonPublicSearch)
+    local defaultBucketSecondarySort = {
+        sortType = Enum.CraftingOrderSortType.MaxTip,
+        reversed = true,
+    }
+
+    local defaultFlatSecondarySort = {
+        sortType = Enum.CraftingOrderSortType.Tip,
+        reversed = true,
+    }
+
+    local isFlatSearch = selectedSkillLineAbility ~= nil
+    
+    local request = {
+        orderType = Enum.CraftingOrderType.Public,
+        selectedSkillLineAbility =  selectedSkillLineAbility,
+        searchFavorites = searchFavorites,
+        initialNonPublicSearch = initialNonPublicSearch,
+        primarySort = Professions.TranslateSearchSort(OrdersPage.primarySort),
+        secondarySort = Professions.TranslateSearchSort(OrdersPage.secondarySort) or (isFlatSearch and defaultFlatSecondarySort or defaultBucketSecondarySort),
+        forCrafter = true,
+        offset = 0,
+        callback =  C_FunctionContainers.CreateCallback(function(...) Craftility:OrderRequestCallback(...) end),
+        profession = _G.ProfessionsFrame.professionInfo.profession,
+    }
+    C_CraftingOrders.RequestCrafterOrders(request)
+end
+
+function Craftility:OrderRequestCallback(orderResult, orderType, displayBuckets, expectMoreRows, offset, isSorted)
+    if displayBuckets then
+        local buckets = C_CraftingOrders.GetCrafterBuckets()
+        Craftility:ParseBuckets(buckets)
+    else
+        local orders = C_CraftingOrders.GetCrafterOrders()
+        Craftility:ParseOrders(orders)
+    end
+    --CraftilityNS:dumpTable(orders, 1)
+end
+
+function Craftility:ParseBuckets(buckets)
+    for i, bucket in pairs(buckets) do
+        self.selectedSkillLineAbility = bucket.skillLineAbilityID
+        if bucket.orderType == Enum.CraftingOrderType.Public then
+            self.initialNonPublicSearch = false
+        elseif bucket.orderType == Enum.CraftingOrderType.Guild then
+            self.initialNonPublicSearch = true
+        end
+        Craftility:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
     end
 end
