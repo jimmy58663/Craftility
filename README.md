@@ -4,19 +4,20 @@ WoW Addon for crafting utility.
 Current functionality:
 
 -Allows for simulating crafts with your existing stats
+
 --Different ranks of materials are selectable
+
 --Optional and Finishing reagents are selectable
+
 --All crafting stat calculations are performed through the WoW UI/API
+
 -A toggle button to automate searching for Public Orders
+
 --A sound byte, selected in the options panel, plays when a new order is found
 
 Features to come:
 
 -Craft info export/import for easy communication for orders
-
-Shortfalls:
-
--Currently only able to allocate all materials of a single rank; cannot mix and match ranks
 
 In game screenshots (skinned by ElvUI):
 ![Alt text](/Media/BlizzSchematic.jpg?raw=true)
