@@ -372,14 +372,69 @@ function CraftilitySim:ChangeMaterials(materialRank)
                         CraftilitySim.SchematicForm.QualityDialog:Open(recipeID, reagentSlotSchematic, allocationsCopy, slotIndex, disallowZeroAllocations);
 
                         --Added below to override quantity and enable buttons
+                        local function Allocate(qualityIndex, value)
+                            local QualityDialog = CraftilitySim.SchematicForm.QualityDialog
+                            QualityDialog.allocations:Allocate(QualityDialog:GetReagent(qualityIndex), value)
+
+                            local overflow = math.max(0, QualityDialog:Accumulate() - QualityDialog:GetQuantityRequired());
+                            if overflow > 0 then
+                                for deallocateIndex = 1, QualityDialog:GetReagentSlotCount() do
+                                    if deallocateIndex ~= qualityIndex then
+                                        local reagent = QualityDialog:GetReagent(deallocateIndex);
+                                        local oldQuantity = QualityDialog.allocations:GetQuantityAllocated(reagent);
+                                        local deallocatable = math.min(overflow, oldQuantity);
+                                        if deallocatable > 0 then
+                                            overflow = overflow - deallocatable;
+
+                                            local newQuantity = oldQuantity - deallocatable;
+                                            QualityDialog.allocations:Allocate(reagent, newQuantity);
+                                        end
+                                    end
+
+                                    if overflow <= 0 then
+                                        break;
+                                    end
+                                end
+                            end
+
+                            for qualityIndex = 1, QualityDialog:GetReagentSlotCount() do
+                                local container = QualityDialog.containers[qualityIndex];
+                                local editBox = container.EditBox;
+                                editBox:SetValue(QualityDialog.allocations:GetQuantityAllocated(QualityDialog:GetReagent(qualityIndex)));
+                            end
+
+                            return value
+                        end
                         for qualityIndex, reagent in ipairs(reagentSlotSchematic.reagents) do
-                            local container = CraftilitySim.SchematicForm.QualityDialog.containers[qualityIndex]
+                            local QualityDialog = CraftilitySim.SchematicForm.QualityDialog
+                            local container = QualityDialog.containers[qualityIndex]
                             local reagentButton = container.Button
                             local editBox = container.EditBox
+
+                            editBox:SetScript("OnTextChanged", function (editBox, userChanged)
+                                if not userChanged then
+                                    Allocate(qualityIndex, tonumber(editBox:GetText()) or 0)
+                                end
+                            end)
+
+                            reagentButton:SetScript("OnClick", function(button, buttonName, down)
+                                if IsShiftKeyDown() then
+                                    Professions.HandleQualityReagentItemLink(QualityDialog.recipeID, QualityDialog.reagentSlotSchematic, qualityIndex)
+                                else
+                                    if buttonName == "LeftButton" then
+                                        Allocate(qualityIndex, QualityDialog:GetQuantityRequired())
+                                    elseif buttonName == "RightButton" then
+                                        Allocate(qualityIndex, 0)
+                                    end
+                                end
+                            end)
+
                             reagentButton:SetItemButtonCount(quantityRequired)
                             reagentButton:DesaturateHierarchy(0)
-                            editBox:SetEnabled(true)
+                            editBox:Enable()
                             editBox:SetMinMaxValues(0, quantityRequired)
+                            local quantity = QualityDialog:GetQuantityAllocated(qualityIndex)
+		                    editBox:SetText(quantity)
                         end
                         CraftilitySim.SchematicForm.QualityDialog.AcceptButton:SetEnabled(true)
                     end
