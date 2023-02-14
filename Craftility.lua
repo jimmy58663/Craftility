@@ -151,37 +151,6 @@ function Craftility:ParseOrders(orders)
     end
 end
 
-function CraftilityNS:dumpTable(table, maxDepth, currentDepth)
-    if currentDepth == nil then
-        currentDepth = 0
-    end
-
-    if maxDepth == nil then
-        maxDepth = 20
-    end
-
-    if (currentDepth > maxDepth) then
-        return
-    end
-    
-    for k,v in pairs(table) do
-        if (type(k) == "table") then
-			CraftilityNS:dumpTable(k, maxDepth, currentDepth+1)
-        elseif (type(v) == "table") then
-            print(string.rep(" ", currentDepth)..k..":")
-            CraftilityNS:dumpTable(v, maxDepth, currentDepth+1)
-        else
-            if (type(v) == "function") then
-				print(string.rep(" ", currentDepth)..k..": <function>")
-			elseif (type(v) == "userdata") then
-				print(string.rep(" ", currentDepth)..k..": <userdata>")
-			else
-				print(string.rep(" ", currentDepth)..k..": ",v)	
-			end
-        end
-    end
-end
-
 function Craftility:RequestOrders(selectedSkillLineAbility, searchFavorites, initialNonPublicSearch)
     local defaultBucketSecondarySort = {
         sortType = Enum.CraftingOrderSortType.MaxTip,
@@ -218,7 +187,6 @@ function Craftility:OrderRequestCallback(orderResult, orderType, displayBuckets,
         local orders = C_CraftingOrders.GetCrafterOrders()
         Craftility:ParseOrders(orders)
     end
-    --CraftilityNS:dumpTable(orders, 1)
 end
 
 function Craftility:ParseBuckets(buckets)
@@ -232,3 +200,37 @@ function Craftility:ParseBuckets(buckets)
         Craftility:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
     end
 end
+
+
+--CraftilityNS
+function CraftilityNS:dumpTable(table, maxDepth, currentDepth)
+    if currentDepth == nil then
+        currentDepth = 0
+    end
+
+    if maxDepth == nil then
+        maxDepth = 20
+    end
+
+    if (currentDepth > maxDepth) then
+        return
+    end
+    
+    for k,v in pairs(table) do
+        if (type(k) == "table") then
+			CraftilityNS:dumpTable(k, maxDepth, currentDepth+1)
+        elseif (type(v) == "table") then
+            print(string.rep(" ", currentDepth)..k..":")
+            CraftilityNS:dumpTable(v, maxDepth, currentDepth+1)
+        else
+            if (type(v) == "function") then
+				print(string.rep(" ", currentDepth)..k..": <function>")
+			elseif (type(v) == "userdata") then
+				print(string.rep(" ", currentDepth)..k..": <userdata>")
+			else
+				print(string.rep(" ", currentDepth)..k..": ",v)	
+			end
+        end
+    end
+end
+
