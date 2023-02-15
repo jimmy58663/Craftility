@@ -191,14 +191,20 @@ end
 
 function Craftility:ParseBuckets(buckets)
     for i, bucket in pairs(buckets) do
-        self.selectedSkillLineAbility = bucket.skillLineAbilityID
+        local selectedSkillLineAbility = bucket.skillLineAbilityID
+        local searchFavorites = false
+        local initialNonPublicSearch = false
         if bucket.orderType == Enum.CraftingOrderType.Public then
-            self.initialNonPublicSearch = false
+            initialNonPublicSearch = false
         elseif bucket.orderType == Enum.CraftingOrderType.Guild then
-            self.initialNonPublicSearch = true
+            initialNonPublicSearch = true
         end
-        Craftility:RequestOrders(self.selectedSkillLineAbility, self.searchFavorites, self.initialNonPublicSearch)
+        Craftility:RequestOrders(selectedSkillLineAbility, searchFavorites, initialNonPublicSearch)
     end
+
+    --reset search to defaults
+    OrdersPage.BrowseFrame.RecipeList:ClearSelectedRecipe()
+    OrdersPage.selectedRecipe = nil
 end
 
 
