@@ -537,10 +537,9 @@ end
 
 function CraftilitySim:SerializeCraft(data)
     local serializedData = AceSerializer:Serialize(data)
-    --local compressedData = libC:Compress(serializedData)
-    --local encodedData = EncodeTable:Encode(compressedData)
-    --return encodedData
-    return serializedData
+    local compressedData = libC:Compress(serializedData)
+    local encodedData = EncodeTable:Encode(compressedData)
+    return encodedData
 end
 
 function CraftilitySim:DeserializeCraft(encodedData)
