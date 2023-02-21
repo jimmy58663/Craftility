@@ -66,7 +66,7 @@ function CraftilitySim:TRADE_SKILL_SHOW()
 
         self.HideSimButton = CreateFrame("Button", "Craftility_HideSimButton", self.SchematicForm, "UIPanelButtonTemplate")
         self.HideSimButton:SetSize(120, 22)
-        self.HideSimButton:SetPoint("LEFT", self.SchematicForm.Details, "BOTTOMLEFT", -125, 30)
+        self.HideSimButton:SetPoint("RIGHT", self.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -35)
         self.HideSimButton.Text:SetText("Hide Sim Mode")
         self.HideSimButton:SetScript("OnClick", CraftilitySim.HideSimMode)
 
@@ -90,8 +90,9 @@ function CraftilitySim:TRADE_SKILL_SHOW()
 
         self.RecraftCheckBox = CreateFrame("CheckButton", "Craftility_RecraftCheckBox", self.SchematicForm, "UICheckButtonTemplate")
         self.RecraftCheckBox:SetSize(26, 26)
-        self.RecraftCheckBox:SetPoint("LEFT", self.HideSimButton, "TOPLEFT", 0, 25)
-        self.RecraftCheckBox.text:SetText("  Show Recraft")
+        self.RecraftCheckBox:SetPoint("RIGHT", self.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
+        self.RecraftCheckBox.text:SetText("Show Recraft  ")
+        self.RecraftCheckBox.text:SetPoint("RIGHT", self.RecraftCheckBox, "LEFT", -100, 0)
         self.RecraftCheckBox:SetScript("OnClick", function () 
             local checked = CraftilitySim.RecraftCheckBox:GetChecked()
             if not checked then
