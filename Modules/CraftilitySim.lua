@@ -35,7 +35,7 @@ function CraftilitySim:TRADE_SKILL_SHOW()
     if not self.SchematicForm then
         self.ShowSimButton = CreateFrame("Button", "Craftility_ShowSimButton", CraftingPage.SchematicForm, "UIPanelButtonTemplate")
         self.ShowSimButton:SetSize(120, 22)
-        self.ShowSimButton:SetPoint("LEFT", CraftingPage.SchematicForm.Details, "BOTTOMLEFT", -125, 30)
+        self.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
         self.ShowSimButton.Text:SetText("Show Sim Mode")
         self.ShowSimButton:SetScript("OnClick", CraftilitySim.ShowSimMode)
         
@@ -132,6 +132,13 @@ function CraftilitySim:HookInit(recipeInfo)
     else
         CraftilitySim.currentRecipeInfo = recipeInfo
     end
+
+    if CraftingPage.SchematicForm.transaction.isRecraft then
+        CraftilitySim.RecraftCheckBox:Hide()
+    else
+        CraftilitySim.RecraftCheckBox:Show()
+    end
+
     CraftilitySim.SchematicForm:ClearTransaction()
     if CraftilitySim.currentRecipeInfo ~= nil then
         if CraftilitySim.RecraftOverride then
@@ -306,6 +313,16 @@ end
 
 function CraftilitySim:HideSimMode()
     CraftilitySim.SchematicForm:Hide()
+    local checked = CraftilitySim.RecraftCheckBox:GetChecked()
+    if checked then
+        CraftilitySim.RecraftCheckBox:SetChecked(false)
+        Professions:EraseRecraftingTransitionData()
+        local previousRecipeID = CraftingPage.RecipeList:GetPreviousRecipeID()
+        local recipeInfo = _G.C_TradeSkillUI.GetRecipeInfo(previousRecipeID)
+        CraftingPage.SchematicForm.currentRecipeInfo = recipeInfo
+        CraftilitySim.RecraftOverride = false
+        CraftilitySim:HookInit()
+    end
     CraftingPage.SchematicForm:Show()
 end
 
