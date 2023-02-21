@@ -166,6 +166,16 @@ function CraftilitySim:HookInit(recipeInfo)
             CraftilitySim:UpdateSkillVarianceIcon()
         end
 
+        if CraftilitySim.currentRecipeInfo.isEnchantingRecipe then
+            CraftilitySim.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.enchantSlot, "BOTTOMRIGHT", 0, -10)
+            CraftilitySim.HideSimButton:SetPoint("RIGHT", CraftilitySim.SchematicForm.enchantSlot, "BOTTOMRIGHT", 0, -10)
+            CraftilitySim.RecraftCheckBox:Hide()
+        else
+            CraftilitySim.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
+            CraftilitySim.HideSimButton:SetPoint("RIGHT", CraftilitySim.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -35)
+            CraftilitySim.RecraftCheckBox:Show()
+        end
+
         if CraftilitySim.SchematicForm:IsShown() then
             if tContains(IgnoreRecipes, recipeID) then
                 CraftilitySim.R1MatsButton:Hide()
@@ -182,6 +192,9 @@ function CraftilitySim:HookInit(recipeInfo)
                 CraftilitySim.HideSimButton:Show()
             end
         end
+
+        
+
     end
 end
 
@@ -248,6 +261,11 @@ function CraftilitySim:ElvSkinning(CraftilitySim)
 		local slot = SchematicForm.salvageSlot
 		if slot then
 			ReskinSlotButton(slot.Button)
+		end
+
+        local enchantSlot = SchematicForm.enchantSlot
+		if enchantSlot then
+			ReskinSlotButton(enchantSlot.Button)
 		end
 	end)
 
