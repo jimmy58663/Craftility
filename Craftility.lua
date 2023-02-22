@@ -7,13 +7,40 @@ local Craftility = LibStub("AceAddon-3.0"):NewAddon("Craftility", "AceConsole-3.
 CraftilityNS.Craftility = Craftility
 _G.CraftilityNS = CraftilityNS
 
-
 local OrdersPage = _G.ProfessionsFrame.OrdersPage
 
 Craftility.OrdersSeen = {[Enum.CraftingOrderType.Public] = {}, [Enum.CraftingOrderType.Guild] = {}, [Enum.CraftingOrderType.Personal] = {}}
 Craftility.selectedSkillLineAbility = nil
 Craftility.searchFavorites = false
 Craftility.initialNonPublicSearch = false
+
+local ProfessionSkillLineLookup = {
+    [129] = 0, --First Aid
+    [164] = 1, --Blacksmithing
+    [165] = 2, --Leatherworking
+    [171] = 3, --Alchemy
+    [182] = 4, --Herbalism
+    [184] = 5, --Cooking
+    [186] = 6, --Mining
+    [197] = 7, --Tailoring
+    [202] = 8, --Engineering
+    [333] = 9, --Enchanting
+    [356] = 10, --Fishing
+    [393] = 11, --Skinning
+    [755] = 12, --Jewelcrafting
+    [773] = 13, --Inscription
+    [794] = 14 --Archaeology
+}
+local CraftingProfessions = {
+    1, --Blacksmithing
+    2, --Leatherworking
+    3, --Alchemy
+    7, --Tailoring
+    8, --Engineering
+    9, --Enchanting
+    12, --Jewelcrafting
+    13 --Inscription
+}
 
 local soundBytes = {
     [SOUNDKIT.AUCTION_WINDOW_OPEN] = "Auction Window Open",
@@ -78,6 +105,7 @@ end
 function Craftility:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
     self:RegisterEvent("CHAT_MSG_SYSTEM")
+    CraftilityNS:SetProfessionInfo()
 end
 
 function Craftility:OnDisable()
@@ -249,3 +277,38 @@ function CraftilityNS:dumpTable(table, maxDepth, currentDepth)
     end
 end
 
+function CraftilityNS:SetProfessionInfo()
+    local function GetProfInfo(profIndex)
+        if profIndex then
+            local name, icon, skillLevel, maxSkillLevel, numAbilities, spelloffset, skillLine, skillModifier, specializationIndex, specializationOffset, professionName = GetProfessionInfo(profIndex)
+            local profInfo = {
+                skillLevel = skillLevel,
+                skillModifier = skillModifier,
+                parentProfessionName = name,
+                parentProfessionID = skillLine,
+                profession = ProfessionSkillLineLookup[skillLine],
+                professionName = professionName,
+                maxSkillLevel = maxSkillLevel,
+                expansionName = professionName:gsub(' '..name, '')
+            }
+            return profInfo
+        end
+    end 
+
+    CraftilityNS.professionInfo = {
+        prof1 = nil,
+        prof2 = nil
+    }
+    local prof1, prof2= GetProfessions()
+    
+    CraftilityNS.professionInfo.prof1 = GetProfInfo(prof1)
+    CraftilityNS.professionInfo.prof2 = GetProfInfo(prof2)
+end
+
+function CraftilityNS:IsCraftingProfession(professionInfo)
+    if tContains(CraftingProfessions, professionInfo.profession) then
+        return true
+    else
+        return false
+    end
+end
