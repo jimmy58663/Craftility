@@ -77,6 +77,7 @@ end
 
 function Craftility:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
+    self:RegisterEvent("CHAT_MSG_SYSTEM")
 end
 
 function Craftility:OnDisable()
@@ -126,6 +127,14 @@ function Craftility:TRADE_SKILL_SHOW()
 			self.AutoSearchCheckBox:SetPoint("LEFT", OrdersPage.BrowseFrame.FavoritesSearchButton, "TOPLEFT", -3, 12)
         end
         self:UnregisterEvent("TRADE_SKILL_SHOW")
+    end
+end
+
+function Craftility:CHAT_MSG_SYSTEM(eventName, message, ...)
+    if message == "You have received a new Personal Crafting Order." then
+        FlashClientIcon()
+        PlaySound(Craftility.db.profile.SoundByteId, "SFX")
+        RaidNotice_AddMessage(RaidWarningFrame, "!!! NEW PERSONAL CRAFTING ORDER !!!", ChatTypeInfo["RAID_WARNING"])
     end
 end
 
