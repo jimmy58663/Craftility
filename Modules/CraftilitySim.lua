@@ -149,6 +149,8 @@ function CraftilitySim:HookInit(recipeInfo)
             CraftilitySim.SchematicForm.OutputIcon:Show()
             CraftilitySim.SchematicForm.OutputText:Show()
             CraftilitySim.SchematicForm.RequiredTools:Show()
+            CraftilitySim.SchematicForm.Reagents:ClearAllPoints()
+            CraftilitySim.SchematicForm.Reagents:SetPoint("TOPLEFT", CraftilitySim.SchematicForm.Description, "BOTTOMLEFT", 0, -20)
         else
             CraftilitySim.SchematicForm:Init(CraftilitySim.currentRecipeInfo)
         end
@@ -192,9 +194,6 @@ function CraftilitySim:HookInit(recipeInfo)
                 CraftilitySim.HideSimButton:Show()
             end
         end
-
-        
-
     end
 end
 
@@ -326,6 +325,11 @@ function CraftilitySim:ShowSimMode()
     CraftingPage.SchematicForm:Hide()
     CraftilitySim.SchematicForm:Show()
     CraftilitySim:HideUnused()
+    if CraftilitySim.SchematicForm.transaction.isRecraft then
+        CraftilitySim.RecraftCheckBox:Hide()
+    else
+        CraftilitySim.RecraftCheckBox:Show()
+    end
     CraftilitySim:ChangeMaterials(1)    
 end
 
