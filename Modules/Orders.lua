@@ -220,7 +220,7 @@ function Orders:ChangeMaterials(materialRank)
 
             --This section is from BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
             --It overrides the item quantity checking to mock up having all reagents for simulations
-            --Replace all self references with CraftilitySim.SchematicForm
+            --Replace all self references with ProfessionsSim.SchematicForm
             if Professions.GetReagentInputMode(reagentSlotSchematic) == Professions.ReagentInputMode.Quality then
                 slot.Button:SetScript("OnClick", function(button, buttonName, down)
                 if IsShiftKeyDown() then
@@ -321,7 +321,7 @@ function Orders:ChangeMaterials(materialRank)
         elseif reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Optional or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Finishing then
             --This section is from BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
             --It overrides the item quantity checking to mock up having all reagents for simulations
-            --Replace all self references with CraftilitySim.SchematicForm
+            --Replace all self references with ProfessionsSim.SchematicForm
             slot.Button:SetScript("OnMouseDown", function(button, buttonName, down)
 				if not slot:IsUnallocatable() then
 					if buttonName == "LeftButton" then

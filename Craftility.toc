@@ -9,5 +9,6 @@ embeds.xml
 
 Craftility.lua
 
-Modules/CraftilitySim.lua
+Modules/ProfessionsSim.lua
 Modules/Orders.lua
+Modules/CrafterList.lua

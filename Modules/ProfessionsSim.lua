@@ -9,9 +9,9 @@ local EncodeTable = libC:GetAddonEncodeTable()
 local CraftingPage = _G.ProfessionsFrame.CraftingPage
 local Professions = _G.Professions
 
-local CraftilitySim = CraftilityNS.Craftility:NewModule("CraftilitySim", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
-CraftilityNS.CraftilitySim = CraftilitySim
-CraftilitySim.RecraftOverride = false
+local ProfessionsSim = CraftilityNS.Craftility:NewModule("ProfessionsSim", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
+CraftilityNS.ProfessionsSim = ProfessionsSim
+ProfessionsSim.RecraftOverride = false
 
 local IgnoreRecipes = {
     --Recipe IDs to hide simulation buttons on
@@ -26,18 +26,18 @@ local IgnoreRecipes = {
     374627 --JC Prospecting
 }
 
-function CraftilitySim:OnEnable()
+function ProfessionsSim:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
 end
 
-function CraftilitySim:TRADE_SKILL_SHOW()
+function ProfessionsSim:TRADE_SKILL_SHOW()
     local professionInfo = Professions:GetProfessionInfo()
     if not self.SchematicForm then
         self.ShowSimButton = CreateFrame("Button", "Craftility_ShowSimButton", CraftingPage.SchematicForm, "UIPanelButtonTemplate")
         self.ShowSimButton:SetSize(120, 22)
         self.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
         self.ShowSimButton.Text:SetText("Show Sim Mode")
-        self.ShowSimButton:SetScript("OnClick", CraftilitySim.ShowSimMode)
+        self.ShowSimButton:SetScript("OnClick", ProfessionsSim.ShowSimMode)
         
         self.SchematicForm = CreateFrame("Frame", "Craftility_SchematicForm", CraftingPage,"ProfessionsRecipeSchematicFormTemplate")
         self.SchematicForm:SetSize(799, 553)
@@ -55,8 +55,8 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         self.SchematicForm.Details.QualityMeter.Left:SetFrameLevel(qualityFrameLevel + 6)
         self.SchematicForm.Details.QualityMeter.Right:SetFrameLevel(qualityFrameLevel + 7)
         self.SchematicForm.Details:Layout()
-        CraftilitySim:SecureHook(CraftingPage.SchematicForm,"Init", CraftilitySim.HookInit)
-        CraftilitySim:SecureHook(CraftilitySim.SchematicForm, "UpdateDetailsStats", CraftilitySim.UpdateInspirationIcon)
+        ProfessionsSim:SecureHook(CraftingPage.SchematicForm,"Init", ProfessionsSim.HookInit)
+        ProfessionsSim:SecureHook(ProfessionsSim.SchematicForm, "UpdateDetailsStats", ProfessionsSim.UpdateInspirationIcon)
 
         self.SchematicForm.Background = self.SchematicForm:CreateTexture("Background", "BACKGROUND")
         self.SchematicForm.Background:SetPoint("TOPLEFT", self.SchematicForm, "TOPLEFT")
@@ -67,25 +67,25 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         self.HideSimButton:SetSize(120, 22)
         self.HideSimButton:SetPoint("RIGHT", self.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -35)
         self.HideSimButton.Text:SetText("Hide Sim Mode")
-        self.HideSimButton:SetScript("OnClick", CraftilitySim.HideSimMode)
+        self.HideSimButton:SetScript("OnClick", ProfessionsSim.HideSimMode)
 
         self.R1MatsButton = CreateFrame("Button", "Craftility_R1MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
         self.R1MatsButton:SetSize(70, 22)
         self.R1MatsButton:SetPoint("LEFT", self.SchematicForm.Reagents, "BOTTOMLEFT", 0, -35)
         self.R1MatsButton.Text:SetText("R1 Mats")
-        self.R1MatsButton:SetScript("OnClick", function() CraftilitySim:ChangeMaterials(1) end)
+        self.R1MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(1) end)
 
         self.R2MatsButton = CreateFrame("Button", "Craftility_R2MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
         self.R2MatsButton:SetSize(70, 22)
         self.R2MatsButton:SetPoint("LEFT", self.R1MatsButton, "RIGHT", 10, 0)
         self.R2MatsButton.Text:SetText("R2 Mats")
-        self.R2MatsButton:SetScript("OnClick", function() CraftilitySim:ChangeMaterials(2) end)
+        self.R2MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(2) end)
 
         self.R3MatsButton = CreateFrame("Button", "Craftility_R3MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
         self.R3MatsButton:SetSize(70, 22)
         self.R3MatsButton:SetPoint("LEFT", self.R2MatsButton, "RIGHT", 10, 0)
         self.R3MatsButton.Text:SetText("R3 Mats")
-        self.R3MatsButton:SetScript("OnClick", function() CraftilitySim:ChangeMaterials(3) end)
+        self.R3MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(3) end)
 
         self.RecraftCheckBox = CreateFrame("CheckButton", "Craftility_RecraftCheckBox", self.SchematicForm, "UICheckButtonTemplate")
         self.RecraftCheckBox:SetSize(26, 26)
@@ -93,15 +93,15 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         self.RecraftCheckBox.text:SetText("Show Recraft  ")
         self.RecraftCheckBox.text:SetPoint("RIGHT", self.RecraftCheckBox, "LEFT", -100, 0)
         self.RecraftCheckBox:SetScript("OnClick", function () 
-            local checked = CraftilitySim.RecraftCheckBox:GetChecked()
+            local checked = ProfessionsSim.RecraftCheckBox:GetChecked()
             if not checked then
                 Professions:EraseRecraftingTransitionData()
                 local previousRecipeID = CraftingPage.RecipeList:GetPreviousRecipeID()
                 local recipeInfo = _G.C_TradeSkillUI.GetRecipeInfo(previousRecipeID)
                 CraftingPage.SchematicForm.currentRecipeInfo = recipeInfo
             end
-            CraftilitySim.RecraftOverride = checked
-            CraftilitySim:HookInit()
+            ProfessionsSim.RecraftOverride = checked
+            ProfessionsSim:HookInit()
         end)
 
         if ElvUI == nil then
@@ -124,80 +124,80 @@ function CraftilitySim:TRADE_SKILL_SHOW()
     end
 end
 
-function CraftilitySim:HookInit(recipeInfo)
+function ProfessionsSim:HookInit(recipeInfo)
     --Logic is found in BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
     if not recipeInfo then
-        CraftilitySim.currentRecipeInfo = CraftingPage.SchematicForm:GetRecipeInfo()
+        ProfessionsSim.currentRecipeInfo = CraftingPage.SchematicForm:GetRecipeInfo()
     else
-        CraftilitySim.currentRecipeInfo = recipeInfo
+        ProfessionsSim.currentRecipeInfo = recipeInfo
     end
 
     if CraftingPage.SchematicForm.transaction.isRecraft then
-        CraftilitySim.RecraftCheckBox:Hide()
+        ProfessionsSim.RecraftCheckBox:Hide()
     else
-        CraftilitySim.RecraftCheckBox:Show()
+        ProfessionsSim.RecraftCheckBox:Show()
     end
 
-    CraftilitySim.SchematicForm:ClearTransaction()
-    if CraftilitySim.currentRecipeInfo ~= nil then
-        if CraftilitySim.RecraftOverride then
-            CraftilitySim.SchematicForm:Init(CraftilitySim.currentRecipeInfo, CraftilitySim.RecraftOverride)
-            CraftilitySim.SchematicForm.recraftSlot:Hide()
-            CraftilitySim.SchematicForm.RecraftingOutputText:Hide()
-            CraftilitySim.SchematicForm.RecraftingRequiredTools:Hide()
-            CraftilitySim.SchematicForm.OutputIcon:Show()
-            CraftilitySim.SchematicForm.OutputText:Show()
-            CraftilitySim.SchematicForm.RequiredTools:Show()
-            CraftilitySim.SchematicForm.Reagents:ClearAllPoints()
-            CraftilitySim.SchematicForm.Reagents:SetPoint("TOPLEFT", CraftilitySim.SchematicForm.Description, "BOTTOMLEFT", 0, -20)
+    ProfessionsSim.SchematicForm:ClearTransaction()
+    if ProfessionsSim.currentRecipeInfo ~= nil then
+        if ProfessionsSim.RecraftOverride then
+            ProfessionsSim.SchematicForm:Init(ProfessionsSim.currentRecipeInfo, ProfessionsSim.RecraftOverride)
+            ProfessionsSim.SchematicForm.recraftSlot:Hide()
+            ProfessionsSim.SchematicForm.RecraftingOutputText:Hide()
+            ProfessionsSim.SchematicForm.RecraftingRequiredTools:Hide()
+            ProfessionsSim.SchematicForm.OutputIcon:Show()
+            ProfessionsSim.SchematicForm.OutputText:Show()
+            ProfessionsSim.SchematicForm.RequiredTools:Show()
+            ProfessionsSim.SchematicForm.Reagents:ClearAllPoints()
+            ProfessionsSim.SchematicForm.Reagents:SetPoint("TOPLEFT", ProfessionsSim.SchematicForm.Description, "BOTTOMLEFT", 0, -20)
         else
-            CraftilitySim.SchematicForm:Init(CraftilitySim.currentRecipeInfo)
+            ProfessionsSim.SchematicForm:Init(ProfessionsSim.currentRecipeInfo)
         end
-        CraftilitySim.SchematicForm:UpdateDetailsStats()
-        CraftilitySim:HideUnused()
+        ProfessionsSim.SchematicForm:UpdateDetailsStats()
+        ProfessionsSim:HideUnused()
         
-        local recipeID = CraftilitySim.currentRecipeInfo.recipeID
-        if not CraftilitySim.currentRecipeInfo.supportsQualities or tContains(IgnoreRecipes, recipeID) then
-            CraftilitySim.ShowSimButton:Hide()
-        elseif CraftilitySim.currentRecipeInfo.supportsQualities then
-            if not CraftilitySim.ShowSimButton:IsShown() then
-                CraftilitySim.ShowSimButton:Show()
+        local recipeID = ProfessionsSim.currentRecipeInfo.recipeID
+        if not ProfessionsSim.currentRecipeInfo.supportsQualities or tContains(IgnoreRecipes, recipeID) then
+            ProfessionsSim.ShowSimButton:Hide()
+        elseif ProfessionsSim.currentRecipeInfo.supportsQualities then
+            if not ProfessionsSim.ShowSimButton:IsShown() then
+                ProfessionsSim.ShowSimButton:Show()
             end
-            CraftilitySim:UpdateInspirationIcon()
-            CraftilitySim:UpdateSkillVarianceIcon()
+            ProfessionsSim:UpdateInspirationIcon()
+            ProfessionsSim:UpdateSkillVarianceIcon()
         end
 
-        if CraftilitySim.currentRecipeInfo.isEnchantingRecipe then
-            CraftilitySim.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.enchantSlot, "BOTTOMRIGHT", 0, -10)
-            CraftilitySim.HideSimButton:SetPoint("RIGHT", CraftilitySim.SchematicForm.enchantSlot, "BOTTOMRIGHT", 0, -10)
-            CraftilitySim.RecraftCheckBox:Hide()
+        if ProfessionsSim.currentRecipeInfo.isEnchantingRecipe then
+            ProfessionsSim.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.enchantSlot, "BOTTOMRIGHT", 0, -10)
+            ProfessionsSim.HideSimButton:SetPoint("RIGHT", ProfessionsSim.SchematicForm.enchantSlot, "BOTTOMRIGHT", 0, -10)
+            ProfessionsSim.RecraftCheckBox:Hide()
         else
-            CraftilitySim.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
-            CraftilitySim.HideSimButton:SetPoint("RIGHT", CraftilitySim.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -35)
-            CraftilitySim.RecraftCheckBox:Show()
+            ProfessionsSim.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
+            ProfessionsSim.HideSimButton:SetPoint("RIGHT", ProfessionsSim.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -35)
+            ProfessionsSim.RecraftCheckBox:Show()
         end
 
-        if CraftilitySim.SchematicForm:IsShown() then
+        if ProfessionsSim.SchematicForm:IsShown() then
             if tContains(IgnoreRecipes, recipeID) then
-                CraftilitySim.R1MatsButton:Hide()
-                CraftilitySim.R2MatsButton:Hide()
-                CraftilitySim.R3MatsButton:Hide()
-                CraftilitySim.RecraftCheckBox:Hide()
-                CraftilitySim.HideSimButton:Hide()
+                ProfessionsSim.R1MatsButton:Hide()
+                ProfessionsSim.R2MatsButton:Hide()
+                ProfessionsSim.R3MatsButton:Hide()
+                ProfessionsSim.RecraftCheckBox:Hide()
+                ProfessionsSim.HideSimButton:Hide()
             else
-                CraftilitySim:ChangeMaterials(1)
-                CraftilitySim.R1MatsButton:Show()
-                CraftilitySim.R2MatsButton:Show()
-                CraftilitySim.R3MatsButton:Show()
-                CraftilitySim.RecraftCheckBox:Show()
-                CraftilitySim.HideSimButton:Show()
+                ProfessionsSim:ChangeMaterials(1)
+                ProfessionsSim.R1MatsButton:Show()
+                ProfessionsSim.R2MatsButton:Show()
+                ProfessionsSim.R3MatsButton:Show()
+                ProfessionsSim.RecraftCheckBox:Show()
+                ProfessionsSim.HideSimButton:Show()
             end
         end
     end
-    CraftilitySim.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(Professions:GetProfessionInfo()), TextureKitConstants.IgnoreAtlasSize)
+    ProfessionsSim.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(Professions:GetProfessionInfo()), TextureKitConstants.IgnoreAtlasSize)
 end
 
-function CraftilitySim:ElvSkinning(CraftilitySim)
+function ProfessionsSim:ElvSkinning(ProfessionsSim)
     --The below is from ElvUI/Mainline/Modules/Skins/Professions.lua
     local function HandleInputBox(box)
         box:DisableDrawLayer('BACKGROUND')
@@ -241,7 +241,7 @@ function CraftilitySim:ElvSkinning(CraftilitySim)
         end
     end
 
-    local SchematicForm = CraftilitySim.SchematicForm
+    local SchematicForm = ProfessionsSim.SchematicForm
     SchematicForm:StripTextures()
 
 	if E.private.skins.parchmentRemoverEnable then
@@ -301,93 +301,93 @@ function CraftilitySim:ElvSkinning(CraftilitySim)
 		OutputIcon.CircleMask:Hide()
 	end
 
-    local ShowSimButton = CraftilitySim.ShowSimButton
+    local ShowSimButton = ProfessionsSim.ShowSimButton
     S:HandleButton(ShowSimButton)
 
-    local HideSimButton = CraftilitySim.HideSimButton
+    local HideSimButton = ProfessionsSim.HideSimButton
     S:HandleButton(HideSimButton)
 
-    local R1MatsButton = CraftilitySim.R1MatsButton
+    local R1MatsButton = ProfessionsSim.R1MatsButton
     S:HandleButton(R1MatsButton)
 
-    local R2MatsButton = CraftilitySim.R2MatsButton
+    local R2MatsButton = ProfessionsSim.R2MatsButton
     S:HandleButton(R2MatsButton)
 
-    local R3MatsButton = CraftilitySim.R3MatsButton
+    local R3MatsButton = ProfessionsSim.R3MatsButton
     S:HandleButton(R3MatsButton)
 
-    local RecraftCheckBox = CraftilitySim.RecraftCheckBox
+    local RecraftCheckBox = ProfessionsSim.RecraftCheckBox
     S:HandleCheckBox(RecraftCheckBox)
     RecraftCheckBox:SetSize(24, 24)
 end
 
-function CraftilitySim:ShowSimMode()
+function ProfessionsSim:ShowSimMode()
     CraftingPage.SchematicForm:Hide()
-    CraftilitySim.SchematicForm:Show()
-    CraftilitySim:HideUnused()
-    if CraftilitySim.SchematicForm.transaction.isRecraft then
-        CraftilitySim.RecraftCheckBox:Hide()
+    ProfessionsSim.SchematicForm:Show()
+    ProfessionsSim:HideUnused()
+    if ProfessionsSim.SchematicForm.transaction.isRecraft then
+        ProfessionsSim.RecraftCheckBox:Hide()
     else
-        CraftilitySim.RecraftCheckBox:Show()
+        ProfessionsSim.RecraftCheckBox:Show()
     end
-    CraftilitySim:ChangeMaterials(1)    
+    ProfessionsSim:ChangeMaterials(1)    
 end
 
-function CraftilitySim:HideSimMode()
-    CraftilitySim.SchematicForm:Hide()
-    local checked = CraftilitySim.RecraftCheckBox:GetChecked()
+function ProfessionsSim:HideSimMode()
+    ProfessionsSim.SchematicForm:Hide()
+    local checked = ProfessionsSim.RecraftCheckBox:GetChecked()
     if checked then
-        CraftilitySim.RecraftCheckBox:SetChecked(false)
+        ProfessionsSim.RecraftCheckBox:SetChecked(false)
         Professions:EraseRecraftingTransitionData()
         local previousRecipeID = CraftingPage.RecipeList:GetPreviousRecipeID()
         local recipeInfo = _G.C_TradeSkillUI.GetRecipeInfo(previousRecipeID)
         CraftingPage.SchematicForm.currentRecipeInfo = recipeInfo
-        CraftilitySim.RecraftOverride = false
-        CraftilitySim:HookInit()
+        ProfessionsSim.RecraftOverride = false
+        ProfessionsSim:HookInit()
     end
     CraftingPage.SchematicForm:Show()
 end
 
-function CraftilitySim:HideUnused()
+function ProfessionsSim:HideUnused()
     self.SchematicForm.FavoriteButton:Hide()
     self.SchematicForm.AllocateBestQualityCheckBox:Hide()
     self.SchematicForm.TrackRecipeCheckBox:Hide()
 end
 
-function CraftilitySim:ChangeMaterials(materialRank)
+function ProfessionsSim:ChangeMaterials(materialRank)
     local iterator = ipairs
     if materialRank == 3 then
         iterator = ipairs_reverse
     end
 
-    for slot in CraftilitySim.SchematicForm.reagentSlotPool:EnumerateActive() do
+    for slot in ProfessionsSim.SchematicForm.reagentSlotPool:EnumerateActive() do
         local reagentSlotSchematic = slot:GetReagentSlotSchematic()
         local slotIndex = slot:GetSlotIndex()
         local quantityRequired = reagentSlotSchematic.quantityRequired
-        local recipeInfo = CraftilitySim.currentRecipeInfo
+        local recipeInfo = ProfessionsSim.currentRecipeInfo
         local recipeID = recipeInfo.recipeID
         if reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Basic then
             if materialRank ~=2 then
                 for reagentIndex, reagent in iterator(reagentSlotSchematic.reagents) do
-                    CraftilitySim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagent, quantityRequired)
+                    ProfessionsSim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagent, quantityRequired)
                     break
                 end
             elseif materialRank == 2 then
                 if reagentSlotSchematic.reagents[2] ~= nil then
-                    CraftilitySim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagentSlotSchematic.reagents[2], quantityRequired)
+                    ProfessionsSim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagentSlotSchematic.reagents[2], quantityRequired)
                 else
-                    CraftilitySim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagentSlotSchematic.reagents[1], quantityRequired)
+                    ProfessionsSim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagentSlotSchematic.reagents[1], quantityRequired)
                 end
             end
             slot:SetOverrideQuantity(quantityRequired)
 
             --This section is from BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
             --It overrides the item quantity checking to mock up having all reagents for simulations
-            --Replace all self references with CraftilitySim.SchematicForm
+            --Replace all self references with ProfessionsSim.SchematicForm
             if Professions.GetReagentInputMode(reagentSlotSchematic) == Professions.ReagentInputMode.Quality then
                 slot.Button:SetScript("OnClick", function(button, buttonName, down)
                     if IsShiftKeyDown() then
-                        local qualityIndex = Professions.FindFirstQualityAllocated(CraftilitySim.SchematicForm.transaction, reagentSlotSchematic) or 1;
+                        local qualityIndex = Professions.FindFirstQualityAllocated(ProfessionsSim.SchematicForm.transaction, reagentSlotSchematic) or 1;
                         local handled, link = Professions.HandleQualityReagentItemLink(recipeID, reagentSlotSchematic, qualityIndex);
                         if not handled then
                             Professions.TriggerReagentClickedEvent(link);
@@ -398,23 +398,23 @@ function CraftilitySim:ChangeMaterials(materialRank)
                     if not slot:IsUnallocatable() then
                         if buttonName == "LeftButton" then
                             local function OnAllocationsAccepted(dialog, allocations, reagentSlotSchematic)
-                                CraftilitySim.SchematicForm.transaction:OverwriteAllocations(reagentSlotSchematic.slotIndex, allocations);
-                                CraftilitySim.SchematicForm.transaction:SetManuallyAllocated(true);
+                                ProfessionsSim.SchematicForm.transaction:OverwriteAllocations(reagentSlotSchematic.slotIndex, allocations);
+                                ProfessionsSim.SchematicForm.transaction:SetManuallyAllocated(true);
 
                                 slot:Update();
 
-                                CraftilitySim.SchematicForm:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
+                                ProfessionsSim.SchematicForm:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
                             end
 
-                            CraftilitySim.SchematicForm.QualityDialog:RegisterCallback(ProfessionsQualityDialogMixin.Event.Accepted, OnAllocationsAccepted, slot);
+                            ProfessionsSim.SchematicForm.QualityDialog:RegisterCallback(ProfessionsQualityDialogMixin.Event.Accepted, OnAllocationsAccepted, slot);
                             
-                            local allocationsCopy = CraftilitySim.SchematicForm.transaction:GetAllocationsCopy(slotIndex);
+                            local allocationsCopy = ProfessionsSim.SchematicForm.transaction:GetAllocationsCopy(slotIndex);
                             local disallowZeroAllocations = true;
-                            CraftilitySim.SchematicForm.QualityDialog:Open(recipeID, reagentSlotSchematic, allocationsCopy, slotIndex, disallowZeroAllocations);
+                            ProfessionsSim.SchematicForm.QualityDialog:Open(recipeID, reagentSlotSchematic, allocationsCopy, slotIndex, disallowZeroAllocations);
 
                             --Added below to override quantity and enable buttons
                             local function Allocate(qualityIndex, value)
-                                local QualityDialog = CraftilitySim.SchematicForm.QualityDialog
+                                local QualityDialog = ProfessionsSim.SchematicForm.QualityDialog
                                 QualityDialog.allocations:Allocate(QualityDialog:GetReagent(qualityIndex), value)
 
                                 local overflow = math.max(0, QualityDialog:Accumulate() - QualityDialog:GetQuantityRequired());
@@ -447,7 +447,7 @@ function CraftilitySim:ChangeMaterials(materialRank)
                                 return value
                             end
                             for qualityIndex, reagent in ipairs(reagentSlotSchematic.reagents) do
-                                local QualityDialog = CraftilitySim.SchematicForm.QualityDialog
+                                local QualityDialog = ProfessionsSim.SchematicForm.QualityDialog
                                 local container = QualityDialog.containers[qualityIndex]
                                 local reagentButton = container.Button
                                 local editBox = container.EditBox
@@ -477,7 +477,7 @@ function CraftilitySim:ChangeMaterials(materialRank)
                                 local quantity = QualityDialog:GetQuantityAllocated(qualityIndex)
                                 editBox:SetText(quantity)
                             end
-                            CraftilitySim.SchematicForm.QualityDialog.AcceptButton:SetEnabled(true)
+                            ProfessionsSim.SchematicForm.QualityDialog.AcceptButton:SetEnabled(true)
                         end
                     end
                 end);
@@ -485,7 +485,7 @@ function CraftilitySim:ChangeMaterials(materialRank)
         elseif reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Optional or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Finishing then
             --This section is from BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
             --It overrides the item quantity checking to mock up having all reagents for simulations
-            --Replace all self references with CraftilitySim.SchematicForm
+            --Replace all self references with ProfessionsSim.SchematicForm
             local locked, lockedReason = Professions.GetReagentSlotStatus(reagentSlotSchematic, recipeInfo);
             slot.Button:SetScript("OnMouseDown", function(button, buttonName, down)
 				if locked then
@@ -506,15 +506,15 @@ function CraftilitySim:ChangeMaterials(materialRank)
 									end]]
 
 									local reagent = Professions.CreateCraftingReagentByItemID(item:GetItemID());
-									CraftilitySim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagent, reagentSlotSchematic.quantityRequired);
+									ProfessionsSim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagent, reagentSlotSchematic.quantityRequired);
 									
 									slot:SetItem(item);
 
-									CraftilitySim.SchematicForm:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
+									ProfessionsSim.SchematicForm:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
 								end
 
-								local modification = CraftilitySim.SchematicForm.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
-								local allocate = not (modification and CraftilitySim.SchematicForm.transaction:HasAllocatedItemID(modification.itemID));
+								local modification = ProfessionsSim.SchematicForm.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
+								local allocate = not (modification and ProfessionsSim.SchematicForm.transaction:HasAllocatedItemID(modification.itemID));
 								if allocate then
 									AllocateFlyoutItem();
 								else
@@ -532,12 +532,12 @@ function CraftilitySim:ChangeMaterials(materialRank)
 							end
 							
 							flyout.OnElementEnterImplementation = function(elementData, tooltip)
-								Professions.FlyoutOnElementEnterImplementation(elementData, tooltip, recipeID, CraftilitySim.SchematicForm.transaction:GetAllocationItemGUID());
+								Professions.FlyoutOnElementEnterImplementation(elementData, tooltip, recipeID, ProfessionsSim.SchematicForm.transaction:GetAllocationItemGUID());
 							end
 
 							flyout.OnElementEnabledImplementation = nil;
 
-							flyout:Init(slot.Button, CraftilitySim.SchematicForm.transaction);
+							flyout:Init(slot.Button, ProfessionsSim.SchematicForm.transaction);
 							flyout:RegisterCallback(ProfessionsItemFlyoutMixin.Event.ItemSelected, OnFlyoutItemSelected, slot);
 
                             --Added below to override quantity and enable buttons
@@ -549,17 +549,17 @@ function CraftilitySim:ChangeMaterials(materialRank)
                             end
 						end
 					elseif buttonName == "RightButton" then
-						if CraftilitySim.SchematicForm.transaction:HasAllocations(slotIndex) then
+						if ProfessionsSim.SchematicForm.transaction:HasAllocations(slotIndex) then
 							local function Deallocate()
-								CraftilitySim.SchematicForm.transaction:ClearAllocations(slotIndex);
+								ProfessionsSim.SchematicForm.transaction:ClearAllocations(slotIndex);
 
 								slot:ClearItem();
 
-								CraftilitySim.SchematicForm:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
+								ProfessionsSim.SchematicForm:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
 							end
 							
-							local modification = CraftilitySim.SchematicForm.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
-							local allocate = not (modification and CraftilitySim.SchematicForm.transaction:HasAllocatedItemID(modification.itemID));
+							local modification = ProfessionsSim.SchematicForm.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
+							local allocate = not (modification and ProfessionsSim.SchematicForm.transaction:HasAllocatedItemID(modification.itemID));
 							if allocate then
 								Deallocate();
 							else
@@ -573,18 +573,18 @@ function CraftilitySim:ChangeMaterials(materialRank)
 			end);
         end
     end
-    CraftilitySim.SchematicForm:UpdateAllSlots()
-    CraftilitySim.SchematicForm:UpdateDetailsStats()
+    ProfessionsSim.SchematicForm:UpdateAllSlots()
+    ProfessionsSim.SchematicForm:UpdateDetailsStats()
 end
 
-function CraftilitySim:SerializeCraft(data)
+function ProfessionsSim:SerializeCraft(data)
     local serializedData = AceSerializer:Serialize(data)
     local compressedData = libC:Compress(serializedData)
     local encodedData = EncodeTable:Encode(compressedData)
     return encodedData
 end
 
-function CraftilitySim:DeserializeCraft(encodedData)
+function ProfessionsSim:DeserializeCraft(encodedData)
     local compressedData = EncodeTable:Decode(encodedData)
     local decompressSuccess, serializedData = libC:Decompress(compressedData)
     if not decompressSuccess then
@@ -598,14 +598,14 @@ function CraftilitySim:DeserializeCraft(encodedData)
     return data
 end
 
-function CraftilitySim:UpdateInspirationIcon()
-    if not CraftilitySim.currentRecipeInfo.supportsQualities then
+function ProfessionsSim:UpdateInspirationIcon()
+    if not ProfessionsSim.currentRecipeInfo.supportsQualities then
         return
     end
-    local Details = CraftilitySim.SchematicForm.Details
+    local Details = ProfessionsSim.SchematicForm.Details
     local operationInfo = Details.operationInfo
     local craftingQuality = operationInfo.craftingQuality
-    local maxQuality = CraftilitySim.currentRecipeInfo.maxQuality
+    local maxQuality = ProfessionsSim.currentRecipeInfo.maxQuality
     local maxDifficulty = operationInfo.baseDifficulty + operationInfo.bonusDifficulty
 
     local inspirationPercent = nil
@@ -640,28 +640,28 @@ function CraftilitySim:UpdateInspirationIcon()
         end
     end
 
-    if not CraftilitySim.InspirationIcon then
-        CraftilitySim.InspirationIcon = CreateFrame("Frame", "Craftility_InspirationIcon", Details, "ProfessionsQualityMeterCapTemplate")
-        CraftilitySim.InspirationIcon.text = CraftilitySim.InspirationIcon:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-        CraftilitySim.InspirationIcon.text:SetSize("140", "20")
-        CraftilitySim.InspirationIcon.text:SetPoint("RIGHT", CraftilitySim.InspirationIcon, "LEFT")
-        CraftilitySim.InspirationIcon.text:SetText("Inspiration Result: ")
+    if not ProfessionsSim.InspirationIcon then
+        ProfessionsSim.InspirationIcon = CreateFrame("Frame", "Craftility_InspirationIcon", Details, "ProfessionsQualityMeterCapTemplate")
+        ProfessionsSim.InspirationIcon.text = ProfessionsSim.InspirationIcon:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        ProfessionsSim.InspirationIcon.text:SetSize("140", "20")
+        ProfessionsSim.InspirationIcon.text:SetPoint("RIGHT", ProfessionsSim.InspirationIcon, "LEFT")
+        ProfessionsSim.InspirationIcon.text:SetText("Inspiration Result: ")
     end
-    CraftilitySim.InspirationIcon.AppearIcon:SetAtlas(("GemAppear_T%d_Flipbook"):format(craftingQuality))
-    CraftilitySim.InspirationIcon:ClearAllPoints()
-    CraftilitySim.InspirationIcon:SetPoint("CENTER", Details, "BOTTOM", 0, -14)
-    CraftilitySim.InspirationIcon.AppearIcon.Anim:Restart()
-    CraftilitySim:UpdateSkillVarianceIcon()
+    ProfessionsSim.InspirationIcon.AppearIcon:SetAtlas(("GemAppear_T%d_Flipbook"):format(craftingQuality))
+    ProfessionsSim.InspirationIcon:ClearAllPoints()
+    ProfessionsSim.InspirationIcon:SetPoint("CENTER", Details, "BOTTOM", 0, -14)
+    ProfessionsSim.InspirationIcon.AppearIcon.Anim:Restart()
+    ProfessionsSim:UpdateSkillVarianceIcon()
 end
 
-function CraftilitySim:UpdateSkillVarianceIcon()
-    if not CraftilitySim.currentRecipeInfo.supportsQualities then
+function ProfessionsSim:UpdateSkillVarianceIcon()
+    if not ProfessionsSim.currentRecipeInfo.supportsQualities then
         return
     end
-    local Details = CraftilitySim.SchematicForm.Details
+    local Details = ProfessionsSim.SchematicForm.Details
     local operationInfo = Details.operationInfo
     local craftingQuality = operationInfo.craftingQuality
-    local maxQuality = CraftilitySim.currentRecipeInfo.maxQuality
+    local maxQuality = ProfessionsSim.currentRecipeInfo.maxQuality
     local maxDifficulty = operationInfo.baseDifficulty + operationInfo.bonusDifficulty
     local maxSkillVariance = maxDifficulty * .05
     local maxSkill = operationInfo.baseSkill + operationInfo.bonusSkill + maxSkillVariance
@@ -671,21 +671,21 @@ function CraftilitySim:UpdateSkillVarianceIcon()
         skillIcon = craftingQuality + 1
     end
 
-    if not CraftilitySim.SkillVarianceIcon then
-        CraftilitySim.SkillVarianceIcon = CreateFrame("Frame", "Craftility_SkillVarianaceIcon", Details, "ProfessionsQualityMeterCapTemplate")
-        CraftilitySim.SkillVarianceIcon.text = CraftilitySim.SkillVarianceIcon:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-        CraftilitySim.SkillVarianceIcon.text:SetSize("140", "20")
-        CraftilitySim.SkillVarianceIcon.text:SetPoint("RIGHT", CraftilitySim.SkillVarianceIcon, "LEFT")
-        CraftilitySim.SkillVarianceIcon.text:SetText("Skill Variance: ")
+    if not ProfessionsSim.SkillVarianceIcon then
+        ProfessionsSim.SkillVarianceIcon = CreateFrame("Frame", "Craftility_SkillVarianaceIcon", Details, "ProfessionsQualityMeterCapTemplate")
+        ProfessionsSim.SkillVarianceIcon.text = ProfessionsSim.SkillVarianceIcon:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        ProfessionsSim.SkillVarianceIcon.text:SetSize("140", "20")
+        ProfessionsSim.SkillVarianceIcon.text:SetPoint("RIGHT", ProfessionsSim.SkillVarianceIcon, "LEFT")
+        ProfessionsSim.SkillVarianceIcon.text:SetText("Skill Variance: ")
 
-        CraftilitySim.SkillVarianceIcon:SetScript("OnEnter", function(icon) 
+        ProfessionsSim.SkillVarianceIcon:SetScript("OnEnter", function(icon) 
             GameTooltip:SetOwner(icon, "ANCHOR_RIGHT")
             GameTooltip_SetTitle(GameTooltip, "EXPERIMENTAL:")
-            GameTooltip_AddNormalLine(GameTooltip, "Craft with up to "..(math.floor(((CraftilitySim.SchematicForm.Details.operationInfo.baseDifficulty + CraftilitySim.SchematicForm.Details.operationInfo.bonusDifficulty)*.05))).." additional skill.")
+            GameTooltip_AddNormalLine(GameTooltip, "Craft with up to "..(math.floor(((ProfessionsSim.SchematicForm.Details.operationInfo.baseDifficulty + ProfessionsSim.SchematicForm.Details.operationInfo.bonusDifficulty)*.05))).." additional skill.")
             GameTooltip:Show()
         end)
 
-        CraftilitySim.SkillVarianceIcon:SetScript("OnLeave", GameTooltip_Hide)
+        ProfessionsSim.SkillVarianceIcon:SetScript("OnLeave", GameTooltip_Hide)
     end
 
     local chance = "100%"
@@ -697,18 +697,18 @@ function CraftilitySim:UpdateSkillVarianceIcon()
         chance = math.floor(percent).."%"
     end
 
-    CraftilitySim.SkillVarianceIcon.text:SetText("Skill Variance: "..chance.." ")
-    CraftilitySim.SkillVarianceIcon.AppearIcon:SetAtlas(("GemAppear_T%d_Flipbook"):format(skillIcon))
-    CraftilitySim.SkillVarianceIcon:ClearAllPoints()
-    CraftilitySim.SkillVarianceIcon:SetPoint("CENTER", Details, "BOTTOM", 0, -43)
-    CraftilitySim.SkillVarianceIcon.AppearIcon.Anim:Restart()
+    ProfessionsSim.SkillVarianceIcon.text:SetText("Skill Variance: "..chance.." ")
+    ProfessionsSim.SkillVarianceIcon.AppearIcon:SetAtlas(("GemAppear_T%d_Flipbook"):format(skillIcon))
+    ProfessionsSim.SkillVarianceIcon:ClearAllPoints()
+    ProfessionsSim.SkillVarianceIcon:SetPoint("CENTER", Details, "BOTTOM", 0, -43)
+    ProfessionsSim.SkillVarianceIcon.AppearIcon.Anim:Restart()
 end
 
-function CraftilitySim:ExportCraft()
+function ProfessionsSim:ExportCraft()
     local craftData = {}
-    craftData.recipeInfo = CraftilitySim.SchematicForm.currentRecipeInfo
+    craftData.recipeInfo = ProfessionsSim.SchematicForm.currentRecipeInfo
     craftData.transactionInfo = {}
-    for index, item in pairs(CraftilitySim.SchematicForm.transaction.reagentTbls) do
+    for index, item in pairs(ProfessionsSim.SchematicForm.transaction.reagentTbls) do
         local allocs = {}
         for i, alloc in pairs(item.allocations.allocs) do
             allocs[i] = {
@@ -722,23 +722,23 @@ function CraftilitySim:ExportCraft()
         }
     end
 
-    craftData.isRecraft = CraftilitySim.SchematicForm.transaction.isRecraft
-    local encodedData = CraftilitySim:SerializeCraft(craftData)
+    craftData.isRecraft = ProfessionsSim.SchematicForm.transaction.isRecraft
+    local encodedData = ProfessionsSim:SerializeCraft(craftData)
     --print(encodedData)
     return encodedData
 end
 
-function CraftilitySim:ImportCraft(encodedData)
-    local craftData = CraftilitySim:DeserializeCraft(encodedData)
-    CraftilitySim.RecraftOverride = craftData.isRecraft
-    CraftilitySim:HookInit(craftData.RecipeInfo)
-    for slot in CraftilitySim.SchematicForm.reagentSlotPool:EnumerateActive() do
+function ProfessionsSim:ImportCraft(encodedData)
+    local craftData = ProfessionsSim:DeserializeCraft(encodedData)
+    ProfessionsSim.RecraftOverride = craftData.isRecraft
+    ProfessionsSim:HookInit(craftData.RecipeInfo)
+    for slot in ProfessionsSim.SchematicForm.reagentSlotPool:EnumerateActive() do
         local slotIndex = slot:GetSlotIndex()
         if craftData.transactionInfo[slotIndex].allocs then
             for i, alloc in pairs(craftData.transactionInfo[slotIndex].allocs) do
                 local reagent = alloc.reagent
                 local quantity = alloc.quantity
-                CraftilitySim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagent, quantity)
+                ProfessionsSim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagent, quantity)
             end
         end
     end
