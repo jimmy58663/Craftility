@@ -40,7 +40,6 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         self.ShowSimButton:SetScript("OnClick", CraftilitySim.ShowSimMode)
         
         self.SchematicForm = CreateFrame("Frame", "Craftility_SchematicForm", CraftingPage,"ProfessionsRecipeSchematicFormTemplate")
-    
         self.SchematicForm:SetSize(799, 553)
         self.SchematicForm:SetPoint("TOPLEFT", CraftingPage.RecipeList, "TOPRIGHT", 2, 0)
         self.SchematicForm:EnableMouse(true)
@@ -62,7 +61,7 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         self.SchematicForm.Background = self.SchematicForm:CreateTexture("Background", "BACKGROUND")
         self.SchematicForm.Background:SetPoint("TOPLEFT", self.SchematicForm, "TOPLEFT")
         self.SchematicForm.Background:SetSize(799, 553)
-        self.SchematicForm.Background:SetAtlas("Professions-Recipe-Background-"..professionInfo.displayName, false)
+        self.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(professionInfo), TextureKitConstants.IgnoreAtlasSize)
 
         self.HideSimButton = CreateFrame("Button", "Craftility_HideSimButton", self.SchematicForm, "UIPanelButtonTemplate")
         self.HideSimButton:SetSize(120, 22)
@@ -115,7 +114,7 @@ function CraftilitySim:TRADE_SKILL_SHOW()
         end
     end
     if E == nil or not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
-        self.SchematicForm.Background:SetAtlas("Professions-Recipe-Background-"..professionInfo.displayName, false)
+        self.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(professionInfo), TextureKitConstants.IgnoreAtlasSize)
     else
         self:ElvSkinning(self)
     end
@@ -195,6 +194,7 @@ function CraftilitySim:HookInit(recipeInfo)
             end
         end
     end
+    CraftilitySim.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(Professions:GetProfessionInfo()), TextureKitConstants.IgnoreAtlasSize)
 end
 
 function CraftilitySim:ElvSkinning(CraftilitySim)
