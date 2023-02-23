@@ -4,33 +4,33 @@ local ElvUI = nil -- Import: ElvUI if it is loaded when frames are initialized
 local E = nil -- Import: ElvUI Engine module when frames are initialized
 local S = nil -- Import: ElvUI Skins module when frames are initialized
 
-local Orders = CraftilityNS.Craftility:NewModule("Orders", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0", "AceComm-3.0")
-CraftilityNS.Orders = Orders
+local CustOrdersSim = CraftilityNS.Craftility:NewModule("CustOrdersSim", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0", "AceComm-3.0")
+CraftilityNS.CustOrdersSim = CustOrdersSim
 local CustOrdersFrame = _G.ProfessionsCustomerOrdersFrame
-Orders.RecraftOverride = false
-Orders.CrafterSelected = false
-Orders.OriginalRecraft = false
+CustOrdersSim.RecraftOverride = false
+CustOrdersSim.CrafterSelected = false
+CustOrdersSim.OriginalRecraft = false
 
-function Orders:OnEnable()
+function CustOrdersSim:OnEnable()
     self:RegisterEvent("CRAFTINGORDERS_SHOW_CUSTOMER")
     self:RegisterEvent("CRAFTINGORDERS_HIDE_CUSTOMER")
 end
 
-function Orders:CRAFTINGORDERS_SHOW_CUSTOMER()
+function CustOrdersSim:CRAFTINGORDERS_SHOW_CUSTOMER()
     if not CustOrdersFrame then
         CustOrdersFrame = _G.ProfessionsCustomerOrdersFrame
     end
 
-    if not Orders:IsHooked(CustOrdersFrame.Form, "Init") then
-        Orders:SecureHook(CustOrdersFrame.Form, "Init", Orders.HookInit)
+    if not CustOrdersSim:IsHooked(CustOrdersFrame.Form, "Init") then
+        CustOrdersSim:SecureHook(CustOrdersFrame.Form, "Init", CustOrdersSim.HookInit)
     end
 
-    if not Orders:IsHooked(CustOrdersFrame.Form, "SetRecraftItemGUID")then
-        Orders:SecureHook(CustOrdersFrame.Form, "SetRecraftItemGUID", Orders.HookRecraft)
+    if not CustOrdersSim:IsHooked(CustOrdersFrame.Form, "SetRecraftItemGUID")then
+        CustOrdersSim:SecureHook(CustOrdersFrame.Form, "SetRecraftItemGUID", CustOrdersSim.HookRecraft)
     end
 
-    if not Orders.Form then
-        Orders:InitializeButtons()
+    if not CustOrdersSim.Form then
+        CustOrdersSim:InitializeButtons()
     end
 
     if E == nil or not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
@@ -40,48 +40,48 @@ function Orders:CRAFTINGORDERS_SHOW_CUSTOMER()
 
 end
 
-function Orders:CRAFTINGORDERS_HIDE_CUSTOMER()
-    Orders.Form:Hide()
+function CustOrdersSim:CRAFTINGORDERS_HIDE_CUSTOMER()
+    CustOrdersSim.Form:Hide()
 end
 
-function Orders:InitializeButtons()
+function CustOrdersSim:InitializeButtons()
     self.Form = CreateFrame("Frame", "Craftility_Form", CustOrdersFrame,"ProfessionsCustomerOrderFormTemplate")
     local formFrameLevel = CustOrdersFrame.Form:GetFrameLevel()
     self.Form:SetFrameLevel(formFrameLevel + 1)
     self.Form:SetPoint("TOPLEFT", CustOrdersFrame, "TOPLEFT", 5, -60)
     self.Form:Hide()
 
-    Orders:RawHook(self.Form, "GetPendingRecraftItemQuality", Orders.GetPendingRecraftItemQuality, true)
+    CustOrdersSim:RawHook(self.Form, "GetPendingRecraftItemQuality", CustOrdersSim.GetPendingRecraftItemQuality, true)
 
     self.ShowSimButton = CreateFrame("Button", "Craftility_ShowSimButton", CustOrdersFrame.Form, "UIPanelButtonTemplate")
     self.ShowSimButton:SetSize(120, 22)
     self.ShowSimButton:SetPoint("RIGHT", CustOrdersFrame.Form.ReagentContainer.OptionalReagents, "BOTTOMRIGHT", 0, -10)
     self.ShowSimButton.Text:SetText("Show Sim Mode")
-    self.ShowSimButton:SetScript("OnClick", Orders.ShowSimMode)
+    self.ShowSimButton:SetScript("OnClick", CustOrdersSim.ShowSimMode)
 
     self.HideSimButton = CreateFrame("Button", "Craftility_HideSimButton", self.Form, "UIPanelButtonTemplate")
     self.HideSimButton:SetSize(120, 22)
     self.HideSimButton:SetPoint("RIGHT", self.Form.ReagentContainer.OptionalReagents, "BOTTOMRIGHT", 0, -35)
     self.HideSimButton.Text:SetText("Hide Sim Mode")
-    self.HideSimButton:SetScript("OnClick", Orders.HideSimMode)
+    self.HideSimButton:SetScript("OnClick", CustOrdersSim.HideSimMode)
 
     self.R1MatsButton = CreateFrame("Button", "Craftility_R1MatsButton", self.Form, "UIPanelButtonTemplate")
     self.R1MatsButton:SetSize(70, 22)
     self.R1MatsButton:SetPoint("LEFT", self.Form.ReagentContainer.Reagents, "BOTTOMLEFT", 0, -35)
     self.R1MatsButton.Text:SetText("R1 Mats")
-    self.R1MatsButton:SetScript("OnClick", function() Orders:ChangeMaterials(1) end)
+    self.R1MatsButton:SetScript("OnClick", function() CustOrdersSim:ChangeMaterials(1) end)
 
     self.R2MatsButton = CreateFrame("Button", "Craftility_R2MatsButton", self.Form, "UIPanelButtonTemplate")
     self.R2MatsButton:SetSize(70, 22)
     self.R2MatsButton:SetPoint("LEFT", self.R1MatsButton, "RIGHT", 10, 0)
     self.R2MatsButton.Text:SetText("R2 Mats")
-    self.R2MatsButton:SetScript("OnClick", function() Orders:ChangeMaterials(2) end)
+    self.R2MatsButton:SetScript("OnClick", function() CustOrdersSim:ChangeMaterials(2) end)
 
     self.R3MatsButton = CreateFrame("Button", "Craftility_R3MatsButton", self.Form, "UIPanelButtonTemplate")
     self.R3MatsButton:SetSize(70, 22)
     self.R3MatsButton:SetPoint("LEFT", self.R2MatsButton, "RIGHT", 10, 0)
     self.R3MatsButton.Text:SetText("R3 Mats")
-    self.R3MatsButton:SetScript("OnClick", function() Orders:ChangeMaterials(3) end)
+    self.R3MatsButton:SetScript("OnClick", function() CustOrdersSim:ChangeMaterials(3) end)
 
     self.Form.BackButton:SetScript("OnClick", function()
         self.Form:Hide()
@@ -107,14 +107,14 @@ function Orders:InitializeButtons()
     self.RecraftCheckBox.text:SetText("Show Recraft  ")
     self.RecraftCheckBox.text:SetPoint("RIGHT", self.RecraftCheckBox, "LEFT", -100, 0)
     self.RecraftCheckBox:SetScript("OnClick", function () 
-        local checked = Orders.RecraftCheckBox:GetChecked()
-        Orders.RecraftOverride = checked
+        local checked = CustOrdersSim.RecraftCheckBox:GetChecked()
+        CustOrdersSim.RecraftOverride = checked
         if checked then
-            Orders:HookRecraft()
+            CustOrdersSim:HookRecraft()
         else
             Professions:EraseRecraftingTransitionData()
             CustOrdersFrame.Form.order.isRecraft = false
-            Orders:HookInit(CustOrdersFrame.Form.order)
+            CustOrdersSim:HookInit(CustOrdersFrame.Form.order)
         end
     end)
 
@@ -128,28 +128,28 @@ function Orders:InitializeButtons()
     end
 end
 
-function Orders:HookInit(order)
-    --Orders.currentRecipeInfo = C_TradeSkillUI.GetRecipeInfo(CustOrdersFrame.Form.transaction.recipeID)
-    Orders.Form:Init(order)
+function CustOrdersSim:HookInit(order)
+    --CustOrdersSim.currentRecipeInfo = C_TradeSkillUI.GetRecipeInfo(CustOrdersFrame.Form.transaction.recipeID)
+    CustOrdersSim.Form:Init(order)
 
     if order.spellID then
-        Orders.ShowSimButton:Show()
-        Orders.recipeSchematic = order.spellID and C_TradeSkillUI.GetRecipeSchematic(order.spellID, order.isRecraft)
-        Orders:ChangeMaterials(1)
-        if Orders.CrafterSelected then
-            Orders.Details:SetData(order.transaction, Orders.currentRecipeInfo, false)
-            Orders.operationInfo = Orders:GetRecipeOperationInfo()
-            Orders:UpdateDetailsStats(Orders.operationInfo)
+        CustOrdersSim.ShowSimButton:Show()
+        CustOrdersSim.recipeSchematic = order.spellID and C_TradeSkillUI.GetRecipeSchematic(order.spellID, order.isRecraft)
+        CustOrdersSim:ChangeMaterials(1)
+        if CustOrdersSim.CrafterSelected then
+            CustOrdersSim.Details:SetData(order.transaction, CustOrdersSim.currentRecipeInfo, false)
+            CustOrdersSim.operationInfo = CustOrdersSim:GetRecipeOperationInfo()
+            CustOrdersSim:UpdateDetailsStats(CustOrdersSim.operationInfo)
         else
-            Orders.Details:Hide()
+            CustOrdersSim.Details:Hide()
         end
     else
-        Orders.ShowSimButton:Hide()
+        CustOrdersSim.ShowSimButton:Hide()
     end
-    Orders:HideUnused()
+    CustOrdersSim:HideUnused()
 end
 
-function Orders:HideUnused()
+function CustOrdersSim:HideUnused()
     self.Form.FavoriteButton:Hide()
     self.Form.TrackRecipeCheckBox:Hide()
     self.Form.PaymentContainer:Hide()
@@ -158,47 +158,47 @@ function Orders:HideUnused()
     self.Form.AllocateBestQualityCheckBox:Hide()
 end
 
-function Orders:ShowSimMode()
-    Orders.OriginalRecraft = CustOrdersFrame.Form.order.isRecraft
+function CustOrdersSim:ShowSimMode()
+    CustOrdersSim.OriginalRecraft = CustOrdersFrame.Form.order.isRecraft
     CustOrdersFrame.Form:Hide()
     CustOrdersFrame.Form.order.isRecraft = false
-    Orders:HookInit(CustOrdersFrame.Form.order)
-    CustOrdersFrame.Form.order.isRecraft = Orders.OriginalRecraft
-    Orders.Form:Show()
+    CustOrdersSim:HookInit(CustOrdersFrame.Form.order)
+    CustOrdersFrame.Form.order.isRecraft = CustOrdersSim.OriginalRecraft
+    CustOrdersSim.Form:Show()
     if CustOrdersFrame.Form.order.isRecraft then
-        Orders:HookInit(CustOrdersFrame.Form.order)
-        Orders.RecraftCheckBox:Hide()
-        Orders.Form.RecraftRecipeName:Hide()
-        Orders.Form.RecraftSlot:Hide()
+        CustOrdersSim:HookInit(CustOrdersFrame.Form.order)
+        CustOrdersSim.RecraftCheckBox:Hide()
+        CustOrdersSim.Form.RecraftRecipeName:Hide()
+        CustOrdersSim.Form.RecraftSlot:Hide()
 
-        Orders.Form.RecipeName:Show()
-        Orders.Form.ProfessionText:SetPoint("TOPLEFT", Orders.Form.RecipeName, "BOTTOMLEFT", 0, -5)
-        Orders.Form.OutputIcon:Show()
+        CustOrdersSim.Form.RecipeName:Show()
+        CustOrdersSim.Form.ProfessionText:SetPoint("TOPLEFT", CustOrdersSim.Form.RecipeName, "BOTTOMLEFT", 0, -5)
+        CustOrdersSim.Form.OutputIcon:Show()
     else
-        Orders.RecraftCheckBox:Show()
+        CustOrdersSim.RecraftCheckBox:Show()
     end
 end
 
-function Orders:HideSimMode()
-    Orders.Form:Hide()
-    Orders.RecraftCheckBox:SetChecked(false)
-    Orders.RecraftOverride = false
+function CustOrdersSim:HideSimMode()
+    CustOrdersSim.Form:Hide()
+    CustOrdersSim.RecraftCheckBox:SetChecked(false)
+    CustOrdersSim.RecraftOverride = false
     Professions:EraseRecraftingTransitionData()
-    CustOrdersFrame.Form.order.isRecraft = Orders.OriginalRecraft
-    Orders.Form:Init(CustOrdersFrame.Form.order)
+    CustOrdersFrame.Form.order.isRecraft = CustOrdersSim.OriginalRecraft
+    CustOrdersSim.Form:Init(CustOrdersFrame.Form.order)
     CustOrdersFrame.Form:Show()
 end
 
-function Orders:ChangeMaterials(materialRank)
+function CustOrdersSim:ChangeMaterials(materialRank)
     local iterator = ipairs
-    local order = Orders.Form.order
+    local order = CustOrdersSim.Form.order
     if materialRank == 3 then
         iterator = ipairs_reverse
     end
 
     local recipeID = order.spellID
 
-    for slot in Orders.Form.reagentSlotPool:EnumerateActive() do
+    for slot in CustOrdersSim.Form.reagentSlotPool:EnumerateActive() do
         local reagentSlotSchematic = slot:GetReagentSlotSchematic()
         local slotIndex = slot:GetSlotIndex()
         local quantityRequired = reagentSlotSchematic.quantityRequired
@@ -206,14 +206,14 @@ function Orders:ChangeMaterials(materialRank)
         if reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Basic then
             if materialRank ~=2 then
                 for reagentIndex, reagent in iterator(reagentSlotSchematic.reagents) do
-                    Orders.Form.transaction:OverwriteAllocation(slotIndex, reagent, quantityRequired)
+                    CustOrdersSim.Form.transaction:OverwriteAllocation(slotIndex, reagent, quantityRequired)
                     break
                 end
             elseif materialRank == 2 then
                 if reagentSlotSchematic.reagents[2] ~= nil then
-                    Orders.Form.transaction:OverwriteAllocation(slotIndex, reagentSlotSchematic.reagents[2], quantityRequired)
+                    CustOrdersSim.Form.transaction:OverwriteAllocation(slotIndex, reagentSlotSchematic.reagents[2], quantityRequired)
                 else
-                    Orders.Form.transaction:OverwriteAllocation(slotIndex, reagentSlotSchematic.reagents[1], quantityRequired)
+                    CustOrdersSim.Form.transaction:OverwriteAllocation(slotIndex, reagentSlotSchematic.reagents[1], quantityRequired)
                 end
             end
             slot:SetOverrideQuantity(quantityRequired)
@@ -224,7 +224,7 @@ function Orders:ChangeMaterials(materialRank)
             if Professions.GetReagentInputMode(reagentSlotSchematic) == Professions.ReagentInputMode.Quality then
                 slot.Button:SetScript("OnClick", function(button, buttonName, down)
                 if IsShiftKeyDown() then
-                    local qualityIndex = Professions.FindFirstQualityAllocated(Orders.Form.transaction, reagentSlotSchematic) or 1;
+                    local qualityIndex = Professions.FindFirstQualityAllocated(CustOrdersSim.Form.transaction, reagentSlotSchematic) or 1;
                     local handled, link = Professions.HandleQualityReagentItemLink(recipeID, reagentSlotSchematic, qualityIndex);
                     if not handled then
                         Professions.TriggerReagentClickedEvent(link);
@@ -235,22 +235,22 @@ function Orders:ChangeMaterials(materialRank)
                 if not slot:IsUnallocatable() then
                     if buttonName == "LeftButton" then
                         local function OnAllocationsAccepted(dialog, allocations, reagentSlotSchematic)
-                            Orders.Form.transaction:OverwriteAllocations(reagentSlotSchematic.slotIndex, allocations);
-                            Orders.Form.transaction:SetManuallyAllocated(true);
+                            CustOrdersSim.Form.transaction:OverwriteAllocations(reagentSlotSchematic.slotIndex, allocations);
+                            CustOrdersSim.Form.transaction:SetManuallyAllocated(true);
 
                             slot:Update();
-                            Orders:UpdateDetailsStats()
+                            CustOrdersSim:UpdateDetailsStats()
                         end
 
-                        Orders.Form.QualityDialog:RegisterCallback(ProfessionsQualityDialogMixin.Event.Accepted, OnAllocationsAccepted, slot);
+                        CustOrdersSim.Form.QualityDialog:RegisterCallback(ProfessionsQualityDialogMixin.Event.Accepted, OnAllocationsAccepted, slot);
                         
-                        local allocationsCopy = Orders.Form.transaction:GetAllocationsCopy(slotIndex);
+                        local allocationsCopy = CustOrdersSim.Form.transaction:GetAllocationsCopy(slotIndex);
                         local disallowZeroAllocations = true;
-                        Orders.Form.QualityDialog:Open(recipeID, reagentSlotSchematic, allocationsCopy, slotIndex, disallowZeroAllocations);
+                        CustOrdersSim.Form.QualityDialog:Open(recipeID, reagentSlotSchematic, allocationsCopy, slotIndex, disallowZeroAllocations);
 
                         --Added below to override quantity and enable buttons
                         local function Allocate(qualityIndex, value)
-                            local QualityDialog = Orders.Form.QualityDialog
+                            local QualityDialog = CustOrdersSim.Form.QualityDialog
                             QualityDialog.allocations:Allocate(QualityDialog:GetReagent(qualityIndex), value)
 
                             local overflow = math.max(0, QualityDialog:Accumulate() - QualityDialog:GetQuantityRequired());
@@ -283,7 +283,7 @@ function Orders:ChangeMaterials(materialRank)
                             return value
                         end
                         for qualityIndex, reagent in ipairs(reagentSlotSchematic.reagents) do
-                            local QualityDialog = Orders.Form.QualityDialog
+                            local QualityDialog = CustOrdersSim.Form.QualityDialog
                             local container = QualityDialog.containers[qualityIndex]
                             local reagentButton = container.Button
                             local editBox = container.EditBox
@@ -313,7 +313,7 @@ function Orders:ChangeMaterials(materialRank)
                             local quantity = QualityDialog:GetQuantityAllocated(qualityIndex)
 		                    editBox:SetText(quantity)
                         end
-                        Orders.Form.QualityDialog.AcceptButton:SetEnabled(true)
+                        CustOrdersSim.Form.QualityDialog.AcceptButton:SetEnabled(true)
                     end
                 end
                 end);
@@ -337,14 +337,14 @@ function Orders:ChangeMaterials(materialRank)
 									end]]
 
 									local reagent = Professions.CreateCraftingReagentByItemID(item:GetItemID());
-									Orders.Form.transaction:OverwriteAllocation(slotIndex, reagent, reagentSlotSchematic.quantityRequired);
+									CustOrdersSim.Form.transaction:OverwriteAllocation(slotIndex, reagent, reagentSlotSchematic.quantityRequired);
 									
 									slot:SetItem(item);
-                                    Orders:UpdateDetailsStats()
+                                    CustOrdersSim:UpdateDetailsStats()
 								end
 
-								local modification = Orders.Form.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
-								local allocate = not (modification and Orders.Form.transaction:HasAllocatedItemID(modification.itemID));
+								local modification = CustOrdersSim.Form.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
+								local allocate = not (modification and CustOrdersSim.Form.transaction:HasAllocatedItemID(modification.itemID));
 								if allocate then
 									AllocateFlyoutItem();
 								else
@@ -362,12 +362,12 @@ function Orders:ChangeMaterials(materialRank)
 							end
 							
 							flyout.OnElementEnterImplementation = function(elementData, tooltip)
-								Professions.FlyoutOnElementEnterImplementation(elementData, tooltip, recipeID, Orders.Form.transaction:GetAllocationItemGUID());
+								Professions.FlyoutOnElementEnterImplementation(elementData, tooltip, recipeID, CustOrdersSim.Form.transaction:GetAllocationItemGUID());
 							end
 
 							flyout.OnElementEnabledImplementation = nil;
 
-							flyout:Init(slot.Button, Orders.Form.transaction);
+							flyout:Init(slot.Button, CustOrdersSim.Form.transaction);
 							flyout:RegisterCallback(ProfessionsItemFlyoutMixin.Event.ItemSelected, OnFlyoutItemSelected, slot);
 
                             --Added below to override quantity and enable buttons
@@ -379,16 +379,16 @@ function Orders:ChangeMaterials(materialRank)
                             end
 						end
 					elseif buttonName == "RightButton" then
-						if Orders.Form.transaction:HasAllocations(slotIndex) then
+						if CustOrdersSim.Form.transaction:HasAllocations(slotIndex) then
 							local function Deallocate()
-								Orders.Form.transaction:ClearAllocations(slotIndex);
+								CustOrdersSim.Form.transaction:ClearAllocations(slotIndex);
 
 								slot:ClearItem();
-                                Orders:UpdateDetailsStats()
+                                CustOrdersSim:UpdateDetailsStats()
 							end
 							
-							local modification = Orders.Form.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
-							local allocate = not (modification and Orders.Form.transaction:HasAllocatedItemID(modification.itemID));
+							local modification = CustOrdersSim.Form.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
+							local allocate = not (modification and CustOrdersSim.Form.transaction:HasAllocatedItemID(modification.itemID));
 							if allocate then
 								Deallocate();
 							else
@@ -405,21 +405,21 @@ function Orders:ChangeMaterials(materialRank)
         slot.Checkbox:Hide()
         slot:Update()
     end
-    Orders:UpdateDetailsStats()
+    CustOrdersSim:UpdateDetailsStats()
 end
 
-function Orders:UpdateDetailsStats(operationInfo)
-    if not Orders.CrafterSelected then
+function CustOrdersSim:UpdateDetailsStats(operationInfo)
+    if not CustOrdersSim.CrafterSelected then
         return
     end
     if not operationInfo then
-        operationInfo = Orders:GetRecipeOperationInfo()
+        operationInfo = CustOrdersSim:GetRecipeOperationInfo()
     end
 
     self.Details:SetStats(operationInfo, self.currentRecipeInfo.supportsQualities, self.currentRecipeInfo.isGatheringRecipe)
 end
 
-function Orders:GetRecipeOperationInfo()
+function CustOrdersSim:GetRecipeOperationInfo()
     local recipeInfo = self.currentRecipeInfo;
 	if recipeInfo then
 		if self.recipeSchematic.hasGatheringOperationInfo then
@@ -435,29 +435,29 @@ function Orders:GetRecipeOperationInfo()
 	end
 end
 
-function Orders:HookRecraft()
-    Orders.Form.order = CustOrdersFrame.Form.order
-    if Orders.RecraftOverride then
-        Orders.Form.order.isRecraft = Orders.RecraftOverride
+function CustOrdersSim:HookRecraft()
+    CustOrdersSim.Form.order = CustOrdersFrame.Form.order
+    if CustOrdersSim.RecraftOverride then
+        CustOrdersSim.Form.order.isRecraft = CustOrdersSim.RecraftOverride
     end
-    Orders.ShowSimButton:Show()
-    Orders.Form:InitSchematic()
-    Orders.Form:SetupQualityDropDown()
-    Orders.Form:UpdateMinimumQuality()
-    Orders:ChangeMaterials(1)
+    CustOrdersSim.ShowSimButton:Show()
+    CustOrdersSim.Form:InitSchematic()
+    CustOrdersSim.Form:SetupQualityDropDown()
+    CustOrdersSim.Form:UpdateMinimumQuality()
+    CustOrdersSim:ChangeMaterials(1)
     
     --Hide recraft info
-    Orders.Form.RecraftRecipeName:Hide()
-    Orders.Form.RecraftSlot:Hide()
-    Orders:HideUnused()
+    CustOrdersSim.Form.RecraftRecipeName:Hide()
+    CustOrdersSim.Form.RecraftSlot:Hide()
+    CustOrdersSim:HideUnused()
 
     --Show normal craft info
-    Orders.Form.RecipeName:Show()
-    Orders.Form.ProfessionText:SetPoint("TOPLEFT", Orders.Form.RecipeName, "BOTTOMLEFT", 0, -5)
-    Orders.Form.OutputIcon:Show()
+    CustOrdersSim.Form.RecipeName:Show()
+    CustOrdersSim.Form.ProfessionText:SetPoint("TOPLEFT", CustOrdersSim.Form.RecipeName, "BOTTOMLEFT", 0, -5)
+    CustOrdersSim.Form.OutputIcon:Show()
 end
 
-function Orders:GetPendingRecraftItemQuality()
+function CustOrdersSim:GetPendingRecraftItemQuality()
 	local item = nil
     if self.recraftGUID then
         item = Item:CreateFromItemGUID(self.recraftGUID);
@@ -470,7 +470,7 @@ function Orders:GetPendingRecraftItemQuality()
 	return C_TradeSkillUI.GetItemCraftedQualityByItemInfo(item:GetItemLink());
 end
 
-function Orders:ElvSkinning(frame)
+function CustOrdersSim:ElvSkinning(frame)
     --The below is from ElvUI/Mainline/Modules/Skins/ProfessionsOrders.lua
     local hooksecurefunc = hooksecurefunc
 

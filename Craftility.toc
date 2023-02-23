@@ -10,5 +10,5 @@ embeds.xml
 Craftility.lua
 
 Modules/ProfessionsSim.lua
-Modules/Orders.lua
+Modules/CustOrdersSim.lua
 Modules/CrafterList.lua
