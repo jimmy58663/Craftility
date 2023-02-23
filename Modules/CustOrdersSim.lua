@@ -622,4 +622,23 @@ function CustOrdersSim:ElvSkinning(frame)
 	end
 
 	hooksecurefunc(frame.Form, 'Init', FormInit)
+
+    local ShowSimButton = CustOrdersSim.ShowSimButton
+    S:HandleButton(ShowSimButton)
+
+    local HideSimButton = CustOrdersSim.HideSimButton
+    S:HandleButton(HideSimButton)
+
+    local R1MatsButton = CustOrdersSim.R1MatsButton
+    S:HandleButton(R1MatsButton)
+
+    local R2MatsButton = CustOrdersSim.R2MatsButton
+    S:HandleButton(R2MatsButton)
+
+    local R3MatsButton = CustOrdersSim.R3MatsButton
+    S:HandleButton(R3MatsButton)
+
+    local RecraftCheckBox = CustOrdersSim.RecraftCheckBox
+    S:HandleCheckBox(RecraftCheckBox)
+    RecraftCheckBox:SetSize(24, 24)
 end
