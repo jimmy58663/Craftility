@@ -624,7 +624,7 @@ function ProfessionsSim:UpdateInspirationIcon()
         end
     end
 
-    if craftingQuality ~= maxQuality then
+    if craftingQuality ~= maxQuality and inspirationSkill then
         local inspiredSkill = operationInfo.baseSkill + operationInfo.bonusSkill + inspirationSkill
         if maxQuality == 5 then
             if inspiredSkill >= maxDifficulty then 
