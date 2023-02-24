@@ -105,7 +105,6 @@ end
 function Craftility:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
     self:RegisterEvent("CHAT_MSG_SYSTEM")
-    CraftilityNS:SetProfessionInfo()
 end
 
 function Craftility:OnDisable()
@@ -113,6 +112,7 @@ function Craftility:OnDisable()
 end
 
 function Craftility:TRADE_SKILL_SHOW()
+    CraftilityNS:SetProfessionInfo()
     if not self.AutoSearchCheckBox then
         self.AutoSearchCheckBox = CreateFrame("CheckButton", "Craftility_AutoSearchCheckBox", OrdersPage.BrowseFrame, "UICheckButtonTemplate")
         self.AutoSearchCheckBox:SetSize(26, 26)
