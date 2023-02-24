@@ -126,6 +126,13 @@ end
 
 function ProfessionsSim:HookInit(recipeInfo)
     --Logic is found in BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
+    if not Professions.InLocalCraftingMode() then
+        ProfessionsSim.ShowSimButton:Hide()
+        return
+    else
+        ProfessionsSim.ShowSimButton:Show()
+    end
+
     if not recipeInfo then
         ProfessionsSim.currentRecipeInfo = CraftingPage.SchematicForm:GetRecipeInfo()
     else
