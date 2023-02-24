@@ -335,12 +335,12 @@ end
 
 function CraftilityNS:DeserializeData(encodedData)
     local compressedData = self.EncodeTable:Decode(encodedData)
-    local decompressSuccess, serializedData = self.libC:Decompress(compressedData)
+    local decompressSuccess, message = self.libC:Decompress(compressedData)
     if not decompressSuccess then
-        error("Craftility: Error decompressing: " .. serializedData)
+        error("Craftility: Error decompressing: " .. message)
     end
 
-    local deserialzeSuccess, data = self.AceSerializer:Deserialize(serializedData)
+    local deserialzeSuccess, data = self.AceSerializer:Deserialize(decompressSuccess)
     if not deserialzeSuccess then
         error("Craftility: Error deserializing: " .. data)
     end
