@@ -6,7 +6,7 @@ local S = nil -- Import: ElvUI Skins module when frames are initialized
 
 local CustOrdersSim = CraftilityNS.Craftility:NewModule("CustOrdersSim", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0", "AceComm-3.0")
 CraftilityNS.CustOrdersSim = CustOrdersSim
-local CustOrdersFrame = _G.ProfessionsCustomerOrdersFrame
+local CustOrdersFrame = nil
 CustOrdersSim.RecraftOverride = false
 CustOrdersSim.CrafterSelected = false
 CustOrdersSim.OriginalRecraft = false
@@ -14,30 +14,19 @@ CustOrdersSim.OriginalRecraft = false
 function CustOrdersSim:OnEnable()
     self:RegisterEvent("CRAFTINGORDERS_SHOW_CUSTOMER")
     self:RegisterEvent("CRAFTINGORDERS_HIDE_CUSTOMER")
+    self:RegisterMessage("CRAFTILITY_INITIALIZE")
+end
+
+function CustOrdersSim:CRAFTILITY_INITIALIZE()
+    CustOrdersFrame = _G.ProfessionsCustomerOrdersFrame
+    if CustOrdersFrame and not CustOrdersSim.ShowSimButton then
+        self:InitializeButtons()
+        self:SecureHook(CustOrdersFrame.Form, "Init", CustOrdersSim.HookInit)
+        self:SecureHook(CustOrdersFrame.Form, "SetRecraftItemGUID", CustOrdersSim.HookRecraft)
+    end
 end
 
 function CustOrdersSim:CRAFTINGORDERS_SHOW_CUSTOMER()
-    if not CustOrdersFrame then
-        CustOrdersFrame = _G.ProfessionsCustomerOrdersFrame
-    end
-
-    if not CustOrdersSim:IsHooked(CustOrdersFrame.Form, "Init") then
-        CustOrdersSim:SecureHook(CustOrdersFrame.Form, "Init", CustOrdersSim.HookInit)
-    end
-
-    if not CustOrdersSim:IsHooked(CustOrdersFrame.Form, "SetRecraftItemGUID")then
-        CustOrdersSim:SecureHook(CustOrdersFrame.Form, "SetRecraftItemGUID", CustOrdersSim.HookRecraft)
-    end
-
-    if not CustOrdersSim.Form then
-        CustOrdersSim:InitializeButtons()
-    end
-
-    if E == nil or not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
-    else
-        self:ElvSkinning(self)
-    end
-
 end
 
 function CustOrdersSim:CRAFTINGORDERS_HIDE_CUSTOMER()
@@ -125,6 +114,10 @@ function CustOrdersSim:InitializeButtons()
     if ElvUI then
         E = _G.ElvUI[1] --Import: Engine
         S = E:GetModule("Skins")
+        if not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
+        else
+            self:ElvSkinning(self)
+        end
     end
 end
 

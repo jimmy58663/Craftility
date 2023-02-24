@@ -3,6 +3,9 @@ local _G = _G
 local ElvUI = nil -- Import: ElvUI if it is loaded when frames are initialized
 local E = nil -- Import: ElvUI Engine module when frames are initialized
 local S = nil -- Import: ElvUI Skins module when frames are initialized
+CraftilityNS.AceSerializer = LibStub:GetLibrary("AceSerializer-3.0")
+CraftilityNS.libC = LibStub:GetLibrary("LibCompress")
+CraftilityNS.EncodeTable = CraftilityNS.libC:GetAddonEncodeTable()
 local Craftility = LibStub("AceAddon-3.0"):NewAddon("Craftility", "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0")
 CraftilityNS.Craftility = Craftility
 _G.CraftilityNS = CraftilityNS
@@ -104,6 +107,7 @@ end
 
 function Craftility:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
+    self:RegisterEvent("CRAFTINGORDERS_SHOW_CUSTOMER")
     self:RegisterEvent("CHAT_MSG_SYSTEM")
 end
 
@@ -112,8 +116,26 @@ function Craftility:OnDisable()
 end
 
 function Craftility:TRADE_SKILL_SHOW()
-    CraftilityNS:SetProfessionInfo()
+    self:INITIALIZE()
+    self:UnregisterEvent("TRADE_SKILL_SHOW")
+end
+
+function Craftility:CRAFTINGORDERS_SHOW_CUSTOMER()
+    self:INITIALIZE()
+    self:UnregisterEvent("CRAFTINGORDERS_SHOW_CUSTOMER")
+end
+
+function Craftility:CHAT_MSG_SYSTEM(eventName, message, ...)
+    if message == "You have received a new Personal Crafting Order." then
+        FlashClientIcon()
+        PlaySound(Craftility.db.profile.SoundByteId, "SFX")
+        RaidNotice_AddMessage(RaidWarningFrame, "!!! NEW PERSONAL CRAFTING ORDER !!!", ChatTypeInfo["RAID_WARNING"])
+    end
+end
+
+function Craftility:INITIALIZE()
     if not self.AutoSearchCheckBox then
+        CraftilityNS:SetProfessionInfo()
         self.AutoSearchCheckBox = CreateFrame("CheckButton", "Craftility_AutoSearchCheckBox", OrdersPage.BrowseFrame, "UICheckButtonTemplate")
         self.AutoSearchCheckBox:SetSize(26, 26)
         self.AutoSearchCheckBox:SetPoint("LEFT", OrdersPage.BrowseFrame.SearchButton, "TOPLEFT", 0, 8)
@@ -124,9 +146,8 @@ function Craftility:TRADE_SKILL_SHOW()
                 if Craftility.Timer then
                     Craftility:CancelAllTimers()
                     Craftility.Timer = nil
-                else
-                    Craftility.Timer = Craftility:ScheduleRepeatingTimer("SearchOrders", Craftility.db.profile.SearchInterval)
                 end
+                Craftility.Timer = Craftility:ScheduleRepeatingTimer("SearchOrders", Craftility.db.profile.SearchInterval)
             elseif not checked then
                 if Craftility.Timer then
                     Craftility:CancelAllTimers()
@@ -152,18 +173,10 @@ function Craftility:TRADE_SKILL_SHOW()
             S = E:GetModule("Skins")
             S:HandleCheckBox(self.AutoSearchCheckBox)
             self.AutoSearchCheckBox:SetSize(24, 24)
-			self.AutoSearchCheckBox:SetPoint("LEFT", OrdersPage.BrowseFrame.FavoritesSearchButton, "TOPLEFT", -3, 12)
+            self.AutoSearchCheckBox:SetPoint("LEFT", OrdersPage.BrowseFrame.FavoritesSearchButton, "TOPLEFT", -3, 12)
         end
-        self:UnregisterEvent("TRADE_SKILL_SHOW")
     end
-end
-
-function Craftility:CHAT_MSG_SYSTEM(eventName, message, ...)
-    if message == "You have received a new Personal Crafting Order." then
-        FlashClientIcon()
-        PlaySound(Craftility.db.profile.SoundByteId, "SFX")
-        RaidNotice_AddMessage(RaidWarningFrame, "!!! NEW PERSONAL CRAFTING ORDER !!!", ChatTypeInfo["RAID_WARNING"])
-    end
+    Craftility:SendMessage("CRAFTILITY_INITIALIZE")
 end
 
 function Craftility:SearchOrders()
@@ -311,4 +324,25 @@ function CraftilityNS:IsCraftingProfession(professionInfo)
     else
         return false
     end
+end
+
+function CraftilityNS:SerializeData(data)
+    local serializedData = self.AceSerializer:Serialize(data)
+    local compressedData = self.libC:Compress(serializedData)
+    local encodedData = self.EncodeTable:Encode(compressedData)
+    return encodedData
+end
+
+function CraftilityNS:DeserializeData(encodedData)
+    local compressedData = self.EncodeTable:Decode(encodedData)
+    local decompressSuccess, serializedData = self.libC:Decompress(compressedData)
+    if not decompressSuccess then
+        error("Craftility: Error decompressing: " .. serializedData)
+    end
+
+    local deserialzeSuccess, data = self.AceSerializer:Deserialize(serializedData)
+    if not deserialzeSuccess then
+        error("Craftility: Error deserializing: " .. data)
+    end
+    return data
 end

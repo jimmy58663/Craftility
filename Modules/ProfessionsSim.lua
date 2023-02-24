@@ -28,100 +28,112 @@ local IgnoreRecipes = {
 
 function ProfessionsSim:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
+    self:RegisterMessage("CRAFTILITY_INITIALIZE")
+end
+
+function ProfessionsSim:CRAFTILITY_INITIALIZE()
+    if not ProfessionsSim.ShowSimButton then
+        self:InitButtons()
+        self:TRADE_SKILL_SHOW()
+    end
 end
 
 function ProfessionsSim:TRADE_SKILL_SHOW()
     local professionInfo = Professions:GetProfessionInfo()
-    if not self.SchematicForm then
-        self.ShowSimButton = CreateFrame("Button", "Craftility_ShowSimButton", CraftingPage.SchematicForm, "UIPanelButtonTemplate")
-        self.ShowSimButton:SetSize(120, 22)
-        self.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
-        self.ShowSimButton.Text:SetText("Show Sim Mode")
-        self.ShowSimButton:SetScript("OnClick", ProfessionsSim.ShowSimMode)
-        
-        self.SchematicForm = CreateFrame("Frame", "Craftility_SchematicForm", CraftingPage,"ProfessionsRecipeSchematicFormTemplate")
-        self.SchematicForm:SetSize(799, 553)
-        self.SchematicForm:SetPoint("TOPLEFT", CraftingPage.RecipeList, "TOPRIGHT", 2, 0)
-        self.SchematicForm:EnableMouse(true)
-        self.SchematicForm:EnableKeyboard(true)
-        
-        local qualityFrameLevel = self.SchematicForm.Details.QualityMeter:GetFrameLevel()
-        self.SchematicForm.Details.QualityMeter.Center:SetFrameLevel(qualityFrameLevel + 1)
-        self.SchematicForm.Details.QualityMeter.InteriorMask:SetFrameLevel(qualityFrameLevel + 1)
-        self.SchematicForm.Details.QualityMeter.DividerGlow:SetFrameLevel(qualityFrameLevel + 2)
-        self.SchematicForm.Details.QualityMeter.Border:SetFrameLevel(qualityFrameLevel + 3)
-        self.SchematicForm.Details.QualityMeter.Marker:SetFrameLevel(qualityFrameLevel + 4)
-        self.SchematicForm.Details.QualityMeter.Flare:SetFrameLevel(qualityFrameLevel + 5)
-        self.SchematicForm.Details.QualityMeter.Left:SetFrameLevel(qualityFrameLevel + 6)
-        self.SchematicForm.Details.QualityMeter.Right:SetFrameLevel(qualityFrameLevel + 7)
-        self.SchematicForm.Details:Layout()
-        ProfessionsSim:SecureHook(CraftingPage.SchematicForm,"Init", ProfessionsSim.HookInit)
-        ProfessionsSim:SecureHook(ProfessionsSim.SchematicForm, "UpdateDetailsStats", ProfessionsSim.UpdateInspirationIcon)
-
-        self.SchematicForm.Background = self.SchematicForm:CreateTexture("Background", "BACKGROUND")
-        self.SchematicForm.Background:SetPoint("TOPLEFT", self.SchematicForm, "TOPLEFT")
-        self.SchematicForm.Background:SetSize(799, 553)
-        self.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(professionInfo), TextureKitConstants.IgnoreAtlasSize)
-
-        self.HideSimButton = CreateFrame("Button", "Craftility_HideSimButton", self.SchematicForm, "UIPanelButtonTemplate")
-        self.HideSimButton:SetSize(120, 22)
-        self.HideSimButton:SetPoint("RIGHT", self.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -35)
-        self.HideSimButton.Text:SetText("Hide Sim Mode")
-        self.HideSimButton:SetScript("OnClick", ProfessionsSim.HideSimMode)
-
-        self.R1MatsButton = CreateFrame("Button", "Craftility_R1MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
-        self.R1MatsButton:SetSize(70, 22)
-        self.R1MatsButton:SetPoint("LEFT", self.SchematicForm.Reagents, "BOTTOMLEFT", 0, -35)
-        self.R1MatsButton.Text:SetText("R1 Mats")
-        self.R1MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(1) end)
-
-        self.R2MatsButton = CreateFrame("Button", "Craftility_R2MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
-        self.R2MatsButton:SetSize(70, 22)
-        self.R2MatsButton:SetPoint("LEFT", self.R1MatsButton, "RIGHT", 10, 0)
-        self.R2MatsButton.Text:SetText("R2 Mats")
-        self.R2MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(2) end)
-
-        self.R3MatsButton = CreateFrame("Button", "Craftility_R3MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
-        self.R3MatsButton:SetSize(70, 22)
-        self.R3MatsButton:SetPoint("LEFT", self.R2MatsButton, "RIGHT", 10, 0)
-        self.R3MatsButton.Text:SetText("R3 Mats")
-        self.R3MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(3) end)
-
-        self.RecraftCheckBox = CreateFrame("CheckButton", "Craftility_RecraftCheckBox", self.SchematicForm, "UICheckButtonTemplate")
-        self.RecraftCheckBox:SetSize(26, 26)
-        self.RecraftCheckBox:SetPoint("RIGHT", self.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
-        self.RecraftCheckBox.text:SetText("Show Recraft  ")
-        self.RecraftCheckBox.text:SetPoint("RIGHT", self.RecraftCheckBox, "LEFT", -100, 0)
-        self.RecraftCheckBox:SetScript("OnClick", function () 
-            local checked = ProfessionsSim.RecraftCheckBox:GetChecked()
-            if not checked then
-                Professions:EraseRecraftingTransitionData()
-                local previousRecipeID = CraftingPage.RecipeList:GetPreviousRecipeID()
-                local recipeInfo = _G.C_TradeSkillUI.GetRecipeInfo(previousRecipeID)
-                CraftingPage.SchematicForm.currentRecipeInfo = recipeInfo
-            end
-            ProfessionsSim.RecraftOverride = checked
-            ProfessionsSim:HookInit()
-        end)
-
-        if ElvUI == nil then
-            ElvUI = _G.ElvUI
+    if self.SchematicForm then
+        if E == nil or not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
+            self.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(professionInfo), TextureKitConstants.IgnoreAtlasSize)
+        else
+            self:ElvSkinning(self)
         end
-
-        if ElvUI then
-            E = _G.ElvUI[1] --Import: Engine
-            S = E:GetModule("Skins")
-        end
+        self.SchematicForm:Hide()
     end
-    if E == nil or not E.private.skins.blizzard.tradeskill or not E.private.skins.blizzard.enable then
-        self.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(professionInfo), TextureKitConstants.IgnoreAtlasSize)
-    else
-        self:ElvSkinning(self)
-    end
-    self.SchematicForm:Hide()
     if not CraftingPage.SchematicForm:IsShown() then
         CraftingPage.SchematicForm:Show()
     end
+end
+
+function ProfessionsSim:InitButtons()
+    self.ShowSimButton = CreateFrame("Button", "Craftility_ShowSimButton", CraftingPage.SchematicForm, "UIPanelButtonTemplate")
+    self.ShowSimButton:SetSize(120, 22)
+    self.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
+    self.ShowSimButton.Text:SetText("Show Sim Mode")
+    self.ShowSimButton:SetScript("OnClick", ProfessionsSim.ShowSimMode)
+    
+    self.SchematicForm = CreateFrame("Frame", "Craftility_SchematicForm", CraftingPage,"ProfessionsRecipeSchematicFormTemplate")
+    self.SchematicForm:SetSize(799, 553)
+    self.SchematicForm:SetPoint("TOPLEFT", CraftingPage.RecipeList, "TOPRIGHT", 2, 0)
+    self.SchematicForm:EnableMouse(true)
+    self.SchematicForm:EnableKeyboard(true)
+    
+    local qualityFrameLevel = self.SchematicForm.Details.QualityMeter:GetFrameLevel()
+    self.SchematicForm.Details.QualityMeter.Center:SetFrameLevel(qualityFrameLevel + 1)
+    self.SchematicForm.Details.QualityMeter.InteriorMask:SetFrameLevel(qualityFrameLevel + 1)
+    self.SchematicForm.Details.QualityMeter.DividerGlow:SetFrameLevel(qualityFrameLevel + 2)
+    self.SchematicForm.Details.QualityMeter.Border:SetFrameLevel(qualityFrameLevel + 3)
+    self.SchematicForm.Details.QualityMeter.Marker:SetFrameLevel(qualityFrameLevel + 4)
+    self.SchematicForm.Details.QualityMeter.Flare:SetFrameLevel(qualityFrameLevel + 5)
+    self.SchematicForm.Details.QualityMeter.Left:SetFrameLevel(qualityFrameLevel + 6)
+    self.SchematicForm.Details.QualityMeter.Right:SetFrameLevel(qualityFrameLevel + 7)
+    self.SchematicForm.Details:Layout()
+    ProfessionsSim:SecureHook(CraftingPage.SchematicForm,"Init", ProfessionsSim.HookInit)
+    ProfessionsSim:SecureHook(ProfessionsSim.SchematicForm, "UpdateDetailsStats", ProfessionsSim.UpdateInspirationIcon)
+
+    self.SchematicForm.Background = self.SchematicForm:CreateTexture("Background", "BACKGROUND")
+    self.SchematicForm.Background:SetPoint("TOPLEFT", self.SchematicForm, "TOPLEFT")
+    self.SchematicForm.Background:SetSize(799, 553)
+    self.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(professionInfo), TextureKitConstants.IgnoreAtlasSize)
+
+    self.HideSimButton = CreateFrame("Button", "Craftility_HideSimButton", self.SchematicForm, "UIPanelButtonTemplate")
+    self.HideSimButton:SetSize(120, 22)
+    self.HideSimButton:SetPoint("RIGHT", self.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -35)
+    self.HideSimButton.Text:SetText("Hide Sim Mode")
+    self.HideSimButton:SetScript("OnClick", ProfessionsSim.HideSimMode)
+
+    self.R1MatsButton = CreateFrame("Button", "Craftility_R1MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
+    self.R1MatsButton:SetSize(70, 22)
+    self.R1MatsButton:SetPoint("LEFT", self.SchematicForm.Reagents, "BOTTOMLEFT", 0, -35)
+    self.R1MatsButton.Text:SetText("R1 Mats")
+    self.R1MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(1) end)
+
+    self.R2MatsButton = CreateFrame("Button", "Craftility_R2MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
+    self.R2MatsButton:SetSize(70, 22)
+    self.R2MatsButton:SetPoint("LEFT", self.R1MatsButton, "RIGHT", 10, 0)
+    self.R2MatsButton.Text:SetText("R2 Mats")
+    self.R2MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(2) end)
+
+    self.R3MatsButton = CreateFrame("Button", "Craftility_R3MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
+    self.R3MatsButton:SetSize(70, 22)
+    self.R3MatsButton:SetPoint("LEFT", self.R2MatsButton, "RIGHT", 10, 0)
+    self.R3MatsButton.Text:SetText("R3 Mats")
+    self.R3MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(3) end)
+
+    self.RecraftCheckBox = CreateFrame("CheckButton", "Craftility_RecraftCheckBox", self.SchematicForm, "UICheckButtonTemplate")
+    self.RecraftCheckBox:SetSize(26, 26)
+    self.RecraftCheckBox:SetPoint("RIGHT", self.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
+    self.RecraftCheckBox.text:SetText("Show Recraft  ")
+    self.RecraftCheckBox.text:SetPoint("RIGHT", self.RecraftCheckBox, "LEFT", -100, 0)
+    self.RecraftCheckBox:SetScript("OnClick", function () 
+        local checked = ProfessionsSim.RecraftCheckBox:GetChecked()
+        if not checked then
+            Professions:EraseRecraftingTransitionData()
+            local previousRecipeID = CraftingPage.RecipeList:GetPreviousRecipeID()
+            local recipeInfo = _G.C_TradeSkillUI.GetRecipeInfo(previousRecipeID)
+            CraftingPage.SchematicForm.currentRecipeInfo = recipeInfo
+        end
+        ProfessionsSim.RecraftOverride = checked
+        ProfessionsSim:HookInit()
+    end)
+
+    if ElvUI == nil then
+        ElvUI = _G.ElvUI
+    end
+
+    if ElvUI then
+        E = _G.ElvUI[1] --Import: Engine
+        S = E:GetModule("Skins")
+    end
+    self.SchematicForm:Hide()
 end
 
 function ProfessionsSim:HookInit(recipeInfo)
