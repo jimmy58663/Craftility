@@ -26,12 +26,15 @@ function CrafterList:OnEnable()
     self:RegisterEvent("TRADE_SKILL_SHOW")
     self:RegisterMessage("CRAFTILITY_INITIALIZE")
     self:RegisterComm("CFLY_Crafter", CrafterList.ImportCrafter)
+    self:RegisterComm("CFLY_RmCrafter", CrafterList.RemoveCrafter)
 end
 
 function CrafterList:CRAFTILITY_INITIALIZE()
     if not self.Services then
         self:InitServices()
         self:TRADE_SKILL_SHOW()
+        JoinChannelByName("CraftilityComm")
+        CraftilityNS.ChannelID = GetChannelName("CraftilityComm")
     end
 end
 
@@ -85,6 +88,12 @@ function CrafterList:InitServices()
         self.Services.Frame.ListAllButton:SetPoint("BOTTOMRIGHT", self.Services.Frame, "BOTTOMRIGHT", -5, 10)
         self.Services.Frame.ListAllButton.Text:SetText("List All Professions")
         self.Services.Frame.ListAllButton:SetScript("OnClick", self.ListAllProfessions)
+
+        self.Services.Frame.UnlistAllButton = CreateFrame("Button", "Craftility_UnlistAllButton", self.Services.Frame, "UIPanelButtonTemplate")
+        self.Services.Frame.UnlistAllButton:SetSize(150, 22)
+        self.Services.Frame.UnlistAllButton:SetPoint("RIGHT", self.Services.Frame.ListAllButton, "LEFT", -20, 0)
+        self.Services.Frame.UnlistAllButton.Text:SetText("Unlist All Professions")
+        self.Services.Frame.UnlistAllButton:SetScript("OnClick", self.UnlistAllProfessions)
     end
 end
 
@@ -160,7 +169,7 @@ function CrafterList:SetupServiceBox(professionInfo, frame)
 
     frame.ListProfessionButton = CreateFrame("Button", "Craftility_ListProfessionButton", frame, "UIPanelButtonTemplate")
     frame.ListProfessionButton:SetSize(150, 22)
-    frame.ListProfessionButton:SetPoint("BOTTOMRIGHT", frame.CommentBox, "BOTTOMRIGHT", 0, -10)
+    frame.ListProfessionButton:SetPoint("BOTTOMRIGHT", frame.CommentBox, "BOTTOMRIGHT", -35, 10)
     frame.ListProfessionButton.Text:SetText("List "..professionInfo.parentProfessionName)
     frame.ListProfessionButton:SetScript("OnClick", function(self, button) 
         if self:GetParent() == CrafterList.Services.Frame.prof1 then
@@ -169,14 +178,36 @@ function CrafterList:SetupServiceBox(professionInfo, frame)
             CrafterList:ListProfession(CraftilityNS.professionInfo.prof2, 2)
         end
     end)
+
+    frame.ListStatus = CreateFrame("CheckButton", "Craftility_ListStatus", frame, "UICheckButtonTemplate")
+    frame.ListStatus:SetSize(26, 26)
+    frame.ListStatus:SetPoint("RIGHT", frame.CommentBox, "TOPRIGHT", -35, 30)
+    frame.ListStatus.Text:SetText("Listed")
+    frame.ListStatus.Text:SetPoint("RIGHT", frame.ListStatus, "LEFT", -70, 0)
+    frame.ListStatus:EnableMouse(false)
+    frame.ListStatus:EnableKeyboard(false)
+
+    frame.UnlistProfessionButton = CreateFrame("Button", "Craftility_UnlistProfessionButton", frame, "UIPanelButtonTemplate")
+    frame.UnlistProfessionButton:SetSize(150, 22)
+    frame.UnlistProfessionButton:SetPoint("RIGHT", frame.ListProfessionButton, "LEFT", -20, 0)
+    frame.UnlistProfessionButton.Text:SetText("Unlist "..professionInfo.parentProfessionName)
+    frame.UnlistProfessionButton:SetScript("OnClick", function(self, button) 
+        if self:GetParent() == CrafterList.Services.Frame.prof1 then
+            CrafterList:UnlistProfession(CraftilityNS.professionInfo.prof1, 1)
+        elseif self:GetParent() == CrafterList.Services.Frame.prof2 then
+            CrafterList:UnlistProfession(CraftilityNS.professionInfo.prof2, 2)
+        end
+    end)
 end
 
 function CrafterList:ListProfession(professionInfo, index)
     local professionComment = nil
     if index == 1 then
         professionComment = CrafterList.Services.Frame.prof1.CommentBox.ScrollingEditBox:GetInputText()
+        CrafterList.Services.Frame.prof1.ListStatus:SetChecked(true)
     elseif index == 2 then
         professionComment = CrafterList.Services.Frame.prof2.CommentBox.ScrollingEditBox:GetInputText()
+        CrafterList.Services.Frame.prof2.ListStatus:SetChecked(true)
     end
     
     local AdvertisedProf = {
@@ -184,13 +215,33 @@ function CrafterList:ListProfession(professionInfo, index)
         Name = professionInfo.parentProfessionName,
         Skill = (professionInfo.skillLevel + professionInfo.skillModifier),
         Comment = professionComment,
-        CrafterName = UnitName("player")
+        CrafterName = UnitName("player"),
+        listed = true
     }
 
     CrafterList.AdvertisedProf[index] = AdvertisedProf
     local serializedData = CraftilityNS:SerializeData(AdvertisedProf)
-    CrafterList:SendCommMessage("CFLY_Crafter", serializedData, "CHANNEL", 586)
+    CrafterList:SendCommMessage("CFLY_Crafter", serializedData, "CHANNEL", CraftilityNS.ChannelID)
 
+end
+
+function CrafterList:UnlistProfession(professionInfo, index)
+    if index == 1 then
+        CrafterList.Services.Frame.prof1.ListStatus:SetChecked(false)
+    elseif index == 2 then
+        CrafterList.Services.Frame.prof2.ListStatus:SetChecked(false)
+    end
+
+    if CrafterList.AdvertisedProf[index].listed then
+        local AdvertisedProf = {
+            ProfessionEnum = professionInfo.profession,
+            CrafterName = UnitName("player")
+        }
+
+        CrafterList.AdvertisedProf[index] = {listed = false}
+        local serializedData = CraftilityNS:SerializeData(AdvertisedProf)
+        CrafterList:SendCommMessage("CFLY_RmCrafter", serializedData, "CHANNEL", CraftilityNS.ChannelID)
+    end
 end
 
 function CrafterList:ListAllProfessions()
@@ -201,17 +252,30 @@ function CrafterList:ListAllProfessions()
     if CrafterList.Services.Frame.prof2.Text then
         CrafterList:ListProfession(CraftilityNS.professionInfo.prof2, 2)
     end
-
 end
 
-function CrafterList:ImportCrafter(serializedData)
-    AdvertisedProf = CraftilityNS:DeserializeData(serializedData)
-    if AdvertisedProf.ProfessionEnum then
+function CrafterList:UnlistAllProfessions()
+    if CrafterList.Services.Frame.prof1.Text then
+        CrafterList:UnlistProfession(CraftilityNS.professionInfo.prof1, 1)
+    end
+
+    if CrafterList.Services.Frame.prof2.Text then
+        CrafterList:UnlistProfession(CraftilityNS.professionInfo.prof2, 2)
+    end
+end
+
+function CrafterList:ImportCrafter(data)
+    local AdvertisedProf = CraftilityNS:DeserializeData(data)
+    if type(AdvertisedProf.ProfessionEnum) == "number" then
         local profTable = CrafterList.Crafters[AdvertisedProf.ProfessionEnum]
-        if not profTable[AdvertisedProf.CrafterName] then
-            tinsert(profTable[AdvertisedProf.CrafterName], AdvertisedProf)
-        else
-            profTable[AdvertisedProf.CrafterName] = AdvertisedProf
-        end
+        profTable[AdvertisedProf.CrafterName] = AdvertisedProf
+    end
+end
+
+function CrafterList:RemoveCrafter(data)
+    local AdvertisedProf = CraftilityNS:DeserializeData(data)
+    local profTable = CrafterList.Crafters[AdvertisedProf.ProfessionEnum]
+    if profTable[AdvertisedProf.CrafterName].Skill then
+        profTable[AdvertisedProf.CrafterName] = nil
     end
 end
