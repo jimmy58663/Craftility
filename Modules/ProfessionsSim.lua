@@ -54,6 +54,9 @@ function ProfessionsSim:TRADE_SKILL_SHOW()
 end
 
 function ProfessionsSim:InitButtons()
+    local width = CraftingPage.SchematicForm:GetWidth()
+    local height = CraftingPage.SchematicForm:GetHeight()
+    
     self.ShowSimButton = CreateFrame("Button", "Craftility_ShowSimButton", CraftingPage.SchematicForm, "UIPanelButtonTemplate")
     self.ShowSimButton:SetSize(120, 22)
     self.ShowSimButton:SetPoint("RIGHT", CraftingPage.SchematicForm.OptionalReagents, "BOTTOMRIGHT", 0, -10)
@@ -61,7 +64,7 @@ function ProfessionsSim:InitButtons()
     self.ShowSimButton:SetScript("OnClick", ProfessionsSim.ShowSimMode)
     
     self.SchematicForm = CreateFrame("Frame", "Craftility_SchematicForm", CraftingPage,"ProfessionsRecipeSchematicFormTemplate")
-    self.SchematicForm:SetSize(799, 553)
+    self.SchematicForm:SetSize(width, height)
     self.SchematicForm:SetPoint("TOPLEFT", CraftingPage.RecipeList, "TOPRIGHT", 2, 0)
     self.SchematicForm:EnableMouse(true)
     self.SchematicForm:EnableKeyboard(true)
@@ -81,7 +84,7 @@ function ProfessionsSim:InitButtons()
 
     self.SchematicForm.Background = self.SchematicForm:CreateTexture("Background", "BACKGROUND")
     self.SchematicForm.Background:SetPoint("TOPLEFT", self.SchematicForm, "TOPLEFT")
-    self.SchematicForm.Background:SetSize(799, 553)
+    self.SchematicForm.Background:SetSize(width, height)
     self.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(professionInfo), TextureKitConstants.IgnoreAtlasSize)
 
     self.HideSimButton = CreateFrame("Button", "Craftility_HideSimButton", self.SchematicForm, "UIPanelButtonTemplate")
@@ -92,7 +95,7 @@ function ProfessionsSim:InitButtons()
 
     self.R1MatsButton = CreateFrame("Button", "Craftility_R1MatsButton", self.SchematicForm, "UIPanelButtonTemplate")
     self.R1MatsButton:SetSize(70, 22)
-    self.R1MatsButton:SetPoint("LEFT", self.SchematicForm.Reagents, "BOTTOMLEFT", 0, -35)
+    self.R1MatsButton:SetPoint("LEFT", self.SchematicForm.Reagents, "BOTTOMLEFT", 0, -10)
     self.R1MatsButton.Text:SetText("R1 Mats")
     self.R1MatsButton:SetScript("OnClick", function() ProfessionsSim:ChangeMaterials(1) end)
 
@@ -342,6 +345,12 @@ end
 
 function ProfessionsSim:ShowSimMode()
     CraftingPage.SchematicForm:Hide()
+
+    local width = CraftingPage.SchematicForm:GetWidth()
+    local height = CraftingPage.SchematicForm:GetHeight()
+    ProfessionsSim.SchematicForm:SetSize(width, height)
+    ProfessionsSim.SchematicForm.Background:SetSize(width, height)
+    ProfessionsSim.SchematicForm.Background:SetAtlas(Professions.GetProfessionBackgroundAtlas(professionInfo), TextureKitConstants.IgnoreAtlasSize)
     ProfessionsSim.SchematicForm:Show()
     ProfessionsSim:HideUnused()
     if ProfessionsSim.SchematicForm.transaction.isRecraft then

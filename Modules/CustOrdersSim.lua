@@ -56,7 +56,7 @@ function CustOrdersSim:InitializeButtons()
 
     self.R1MatsButton = CreateFrame("Button", "Craftility_R1MatsButton", self.Form, "UIPanelButtonTemplate")
     self.R1MatsButton:SetSize(70, 22)
-    self.R1MatsButton:SetPoint("LEFT", self.Form.ReagentContainer.Reagents, "BOTTOMLEFT", 0, -35)
+    self.R1MatsButton:SetPoint("LEFT", self.Form.ReagentContainer.Reagents, "BOTTOMLEFT", 0, -10)
     self.R1MatsButton.Text:SetText("R1 Mats")
     self.R1MatsButton:SetScript("OnClick", function() CustOrdersSim:ChangeMaterials(1) end)
 

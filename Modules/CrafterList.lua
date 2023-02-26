@@ -61,6 +61,9 @@ end
 
 function CrafterList:InitServices()
     if CraftilityNS:IsCraftingProfession(CraftilityNS.professionInfo.prof1) or CraftilityNS:IsCrafterProfession(CraftilityNS.professionInfo.prof2) then
+        local width = CraftingPage.SchematicForm:GetWidth()
+        local height = CraftingPage.SchematicForm:GetHeight()
+        
         self.Services = {}
         self.Services.ServiceButton = CreateFrame("Button", "Craftility_ServiceButton", CraftingPage, "UIPanelButtonTemplate")
         self.Services.ServiceButton:SetSize(120, 22)
@@ -69,12 +72,12 @@ function CrafterList:InitServices()
         self.Services.ServiceButton:SetScript("OnClick", CrafterList.ListServices)
 
         self.Services.Frame = CreateFrame("Frame", "Craftility_ServicesFrame", CraftingPage)
-        self.Services.Frame:SetSize(799, 553)
+        self.Services.Frame:SetSize(width, height)
         self.Services.Frame:SetPoint("TOPLEFT", CraftingPage.RecipeList, "TOPRIGHT", 2, 0)
         self.Services.Frame:Hide()
         self.Services.Frame.Background = self.Services.Frame:CreateTexture("Background", "BACKGROUND")
         self.Services.Frame.Background:SetPoint("TOPLEFT", self.Services.Frame, "TOPLEFT")
-        self.Services.Frame.Background:SetSize(799, 553)
+        self.Services.Frame.Background:SetSize(width, height)
 
         self.Services.Frame.prof1 = CreateFrame("Frame", "Craftility_Prof1Frame", self.Services.Frame)
         self.Services.Frame.prof1:SetPoint("TOPLEFT", self.Services.Frame, "TOPLEFT")
@@ -105,6 +108,11 @@ function CrafterList:ListServices()
         CrafterList.SchematicStatus = 2
         CraftilityNS.ProfessionsSim.SchematicForm:Hide()
     end
+
+    local width = CraftingPage.SchematicForm:GetWidth()
+    local height = CraftingPage.SchematicForm:GetHeight()
+    CrafterList.Services.Frame:SetSize(width, height)
+    CrafterList.Services.Frame.Background:SetSize(width, height)
     CrafterList.Services.Frame:Show()
     CrafterList.Services.ServiceButton.Text:SetText("Hide Services")
     CrafterList.Services.ServiceButton:SetScript("OnClick", function() CrafterList.HideServices() end)
@@ -128,7 +136,10 @@ function CrafterList:SetupServiceBox(professionInfo, frame)
         return
     end
 
-    frame:SetSize(799, 250)
+    local width = CraftingPage.SchematicForm:GetWidth()
+    local height = CraftingPage.SchematicForm:GetHeight()
+
+    frame:SetSize(width, 250)
     frame.Text = frame:CreateFontString("ProfessionName", "ARTWORK", "GameFontNormal")
     frame.Text:SetText(professionInfo.professionName)
     frame.Text:SetPoint("TOPLEFT", frame, "TOPLEFT", 5, -5)
