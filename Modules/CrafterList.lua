@@ -60,7 +60,7 @@ function CrafterList:InitCrafters()
 end
 
 function CrafterList:InitServices()
-    if CraftilityNS:IsCraftingProfession(CraftilityNS.professionInfo.prof1) or CraftilityNS:IsCrafterProfession(CraftilityNS.professionInfo.prof2) then
+    if CraftilityNS:IsCraftingProfession(CraftilityNS.professionInfo.prof1) or CraftilityNS:IsCraftingProfession(CraftilityNS.professionInfo.prof2) then
         local width = CraftingPage.SchematicForm:GetWidth()
         local height = CraftingPage.SchematicForm:GetHeight()
         
