@@ -170,10 +170,12 @@ function Craftility:INITIALIZE()
 
         if ElvUI then
             E = ElvUI[1]
-            S = E:GetModule("Skins")
-            S:HandleCheckBox(self.AutoSearchCheckBox)
-            self.AutoSearchCheckBox:SetSize(24, 24)
-            self.AutoSearchCheckBox:SetPoint("LEFT", OrdersPage.BrowseFrame.FavoritesSearchButton, "TOPLEFT", -3, 12)
+            if E.private.skins.blizzard.tradeskill then
+                S = E:GetModule("Skins")
+                S:HandleCheckBox(self.AutoSearchCheckBox)
+                self.AutoSearchCheckBox:SetSize(24, 24)
+                self.AutoSearchCheckBox:SetPoint("LEFT", OrdersPage.BrowseFrame.FavoritesSearchButton, "TOPLEFT", -3, 12)
+            end
         end
     end
     Craftility:SendMessage("CRAFTILITY_INITIALIZE")
