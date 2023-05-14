@@ -1,6 +1,8 @@
 # Craftility
 WoW Addon for crafting utility.
 
+I am no longer able to develop this due to RL circumstances. If anyone wants to take this over and has any questions just reach out to me.
+
 Current functionality:
 
 -Allows for simulating crafts with your existing stats
