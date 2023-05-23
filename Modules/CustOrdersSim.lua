@@ -316,29 +316,53 @@ function CustOrdersSim:ChangeMaterials(materialRank)
             --It overrides the item quantity checking to mock up having all reagents for simulations
             --Replace all self references with ProfessionsSim.SchematicForm
             slot.Button:SetScript("OnMouseDown", function(button, buttonName, down)
+				if locked then
+					return;
+				end
+
 				if not slot:IsUnallocatable() then
 					if buttonName == "LeftButton" then
 						local flyout = ToggleProfessionsItemFlyout(slot.Button, CustOrdersFrame);
 						if flyout then
+							local function OnUndoClicked(o, flyout)
+								AllocateModification(slotIndex, reagentSlotSchematic);
+								
+								slot:RestoreOriginalItem();
+								
+								CustOrdersSim.Form:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
+							end
+							
+							local function OnFlyoutItemShiftClicked(o, flyout, elementData)
+								local item = elementData.item;
+								local itemLink = ItemUtil.GetItemHyperlink(item:GetItemID());
+								local handled, link = Professions.HandleReagentLink(itemLink);
+								if not handled then
+									Professions.TriggerReagentClickedEvent(link);
+								end
+							end
+
 							local function OnFlyoutItemSelected(o, flyout, elementData)
 								local item = elementData.item;
 								
 								local function AllocateFlyoutItem()
-									--This section is commented out to override quantity checking
-                                    --[[if ItemUtil.GetCraftingReagentCount(item:GetItemID()) == 0 then
-										return;
-									end]]
+									--if ItemUtil.GetCraftingReagentCount(item:GetItemID()) == 0 then
+									--	return;
+									--end
 
 									local reagent = Professions.CreateCraftingReagentByItemID(item:GetItemID());
 									CustOrdersSim.Form.transaction:OverwriteAllocation(slotIndex, reagent, reagentSlotSchematic.quantityRequired);
 									
 									slot:SetItem(item);
-                                    CustOrdersSim:UpdateDetailsStats()
-								end
 
+									CustOrdersSim:UpdateDetailsStats()
+								end
+								
+								-- The existing modification should never produce a warning, and we only want a warning if the new
+								-- allocation would deallocate the modification.
 								local modification = CustOrdersSim.Form.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
-								local allocate = not (modification and CustOrdersSim.Form.transaction:HasAllocatedItemID(modification.itemID));
-								if allocate then
+								local isIdenticalToModification = modification and (modification.itemID == item:GetItemID());
+								local wouldDeallocateModification = modification and CustOrdersSim.Form.transaction:HasAllocatedItemID(modification.itemID);
+								if isIdenticalToModification or not wouldDeallocateModification then
 									AllocateFlyoutItem();
 								else
 									local modItem = Item:CreateFromItemID(modification.itemID);
@@ -347,24 +371,59 @@ function CustOrdersSim:ChangeMaterials(materialRank)
 								end
 							end
 
-							flyout.GetElementsImplementation = function(self, filterOwned)
+							flyout.GetUndoElementImplementation = function(self)
+								if not slot:IsOriginalItemSet() then
+									return slot:GetOriginalItem();
+								end
+							end
+
+							flyout.GetElementsImplementation = function(self, filterAvailable)
 								local itemIDs = Professions.ExtractItemIDsFromCraftingReagents(reagentSlotSchematic.reagents);
-								local items = Professions.GenerateFlyoutItemsTable(itemIDs, filterOwned);
-								local elementData = {items = items};
+								local items = Professions.GenerateFlyoutItemsTable(itemIDs, filterAvailable);
+								local elementData = {items = items, forceAccumulateInventory = true};
 								return elementData;
 							end
 							
 							flyout.OnElementEnterImplementation = function(elementData, tooltip)
-								Professions.FlyoutOnElementEnterImplementation(elementData, tooltip, recipeID, CustOrdersSim.Form.transaction:GetAllocationItemGUID());
+								Professions.FlyoutOnElementEnterImplementation(elementData, tooltip, recipeID, CustOrdersSim.Form.transaction:GetAllocationItemGUID(), CustOrdersSim.Form.transaction);
 							end
+							
+							flyout.OnElementEnabledImplementation = function(button, elementData)
+								local item = elementData.item;
+								if not CustOrdersSim.Form.transaction:AreAllRequirementsAllocated(item) then
+									return false;
+								end
 
-							flyout.OnElementEnabledImplementation = nil;
+								local recraftAllocation = CustOrdersSim.Form.transaction:GetRecraftAllocation();
+								if recraftAllocation and not C_TradeSkillUI.IsRecraftReagentValid(recraftAllocation, item:GetItemID()) then
+									return false;
+								end
+
+								local quantity = nil;
+								if item:GetItemGUID() then
+									quantity = item:GetStackCount();
+								else
+									quantity = ItemUtil.GetCraftingReagentCount(item:GetItemID());
+								end
+
+								if quantity and quantity < reagentSlotSchematic.quantityRequired then
+									return false;
+								end
+
+								return true;
+							end
+							
+							flyout.GetElementValidImplementation = function(button, elementData)
+								return CustOrdersSim.Form.transaction:AreAllRequirementsAllocated(elementData.item);
+							end
 
 							flyout:Init(slot.Button, CustOrdersSim.Form.transaction);
 							flyout:RegisterCallback(ProfessionsItemFlyoutMixin.Event.ItemSelected, OnFlyoutItemSelected, slot);
+							flyout:RegisterCallback(ProfessionsItemFlyoutMixin.Event.ShiftClicked, OnFlyoutItemShiftClicked, slot);
+							flyout:RegisterCallback(ProfessionsItemFlyoutMixin.Event.UndoClicked, OnUndoClicked, slot);
 
-                            --Added below to override quantity and enable buttons
-                            for i=1, select("#", flyout.ScrollBox.ScrollTarget:GetChildren()) do
+                             --Added below to override quantity and enable buttons
+                             for i=1, select("#", flyout.ScrollBox.ScrollTarget:GetChildren()) do
                                 local flyoutButton = select(i, flyout.ScrollBox.ScrollTarget:GetChildren())
                                 flyoutButton:SetItemButtonCount(1)
                                 flyoutButton.enabled = true
@@ -377,7 +436,8 @@ function CustOrdersSim:ChangeMaterials(materialRank)
 								CustOrdersSim.Form.transaction:ClearAllocations(slotIndex);
 
 								slot:ClearItem();
-                                CustOrdersSim:UpdateDetailsStats()
+
+								CustOrdersSim:UpdateDetailsStats()
 							end
 							
 							local modification = CustOrdersSim.Form.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
