@@ -311,7 +311,7 @@ function CustOrdersSim:ChangeMaterials(materialRank)
                 end
                 end);
             end
-        elseif reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Optional or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Finishing then
+        elseif reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Optional or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Finishing or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Modifying then
             --This section is from BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
             --It overrides the item quantity checking to mock up having all reagents for simulations
             --Replace all self references with ProfessionsSim.SchematicForm
@@ -414,7 +414,7 @@ function CustOrdersSim:ChangeMaterials(materialRank)
 							end
 							
 							flyout.GetElementValidImplementation = function(button, elementData)
-								return CustOrdersSim.Form.transaction:AreAllRequirementsAllocated(elementData.item);
+								return  true; --CustOrdersSim.Form.transaction:AreAllRequirementsAllocated(elementData.item);
 							end
 
 							flyout:Init(slot.Button, CustOrdersSim.Form.transaction);

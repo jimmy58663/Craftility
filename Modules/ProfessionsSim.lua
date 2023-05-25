@@ -510,7 +510,7 @@ function ProfessionsSim:ChangeMaterials(materialRank)
                     end
                 end);
             end
-        elseif reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Optional or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Finishing then
+        elseif reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Optional or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Finishing or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Modifying then
             --This section is from BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
             --It overrides the item quantity checking to mock up having all reagents for simulations
             --Replace all self references with ProfessionsSim.SchematicForm
@@ -589,7 +589,7 @@ function ProfessionsSim:ChangeMaterials(materialRank)
 							end
 							
 							flyout.OnElementEnabledImplementation = function(button, elementData)
-								local item = elementData.item;
+								--[[local item = elementData.item;
 								if not ProfessionsSim.SchematicForm.transaction:AreAllRequirementsAllocated(item) then
 									return false;
 								end
@@ -599,7 +599,7 @@ function ProfessionsSim:ChangeMaterials(materialRank)
 									return false;
 								end
 
-								local quantity = nil;
+								 local quantity = nil;
 								if item:GetItemGUID() then
 									quantity = item:GetStackCount();
 								else
@@ -608,13 +608,13 @@ function ProfessionsSim:ChangeMaterials(materialRank)
 
 								if quantity and quantity < reagentSlotSchematic.quantityRequired then
 									return false;
-								end
+								end ]]
 
 								return true;
 							end
 							
 							flyout.GetElementValidImplementation = function(button, elementData)
-								return ProfessionsSim.SchematicForm.transaction:AreAllRequirementsAllocated(elementData.item);
+								return true; --ProfessionsSim.SchematicForm.transaction:AreAllRequirementsAllocated(elementData.item);
 							end
 
 							flyout:Init(slot.Button, ProfessionsSim.SchematicForm.transaction);
