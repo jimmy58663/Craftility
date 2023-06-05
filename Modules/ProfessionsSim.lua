@@ -510,7 +510,7 @@ function ProfessionsSim:ChangeMaterials(materialRank)
                     end
                 end);
             end
-        elseif reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Optional or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Finishing then
+        elseif reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Optional or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Finishing or reagentSlotSchematic.reagentType == Enum.CraftingReagentType.Modifying then
             --This section is from BlizzardInterfaceCode/Interface/AddOns/Blizzard_ProfessionsTemplates/Blizzard_ProfessionsRecipeSchematicForm.lua
             --It overrides the item quantity checking to mock up having all reagents for simulations
             --Replace all self references with ProfessionsSim.SchematicForm
@@ -524,14 +524,30 @@ function ProfessionsSim:ChangeMaterials(materialRank)
 					if buttonName == "LeftButton" then
 						local flyout = ToggleProfessionsItemFlyout(slot.Button, ProfessionsFrame);
 						if flyout then
+							local function OnUndoClicked(o, flyout)
+								AllocateModification(slotIndex, reagentSlotSchematic);
+								
+								slot:RestoreOriginalItem();
+								
+								ProfessionsSim.SchematicForm:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
+							end
+							
+							local function OnFlyoutItemShiftClicked(o, flyout, elementData)
+								local item = elementData.item;
+								local itemLink = ItemUtil.GetItemHyperlink(item:GetItemID());
+								local handled, link = Professions.HandleReagentLink(itemLink);
+								if not handled then
+									Professions.TriggerReagentClickedEvent(link);
+								end
+							end
+
 							local function OnFlyoutItemSelected(o, flyout, elementData)
 								local item = elementData.item;
 								
 								local function AllocateFlyoutItem()
-									--This section is commented out to override quantity checking
-                                    --[[if ItemUtil.GetCraftingReagentCount(item:GetItemID()) == 0 then
-										return;
-									end]]
+									--if ItemUtil.GetCraftingReagentCount(item:GetItemID()) == 0 then
+									--	return;
+									--end
 
 									local reagent = Professions.CreateCraftingReagentByItemID(item:GetItemID());
 									ProfessionsSim.SchematicForm.transaction:OverwriteAllocation(slotIndex, reagent, reagentSlotSchematic.quantityRequired);
@@ -540,10 +556,13 @@ function ProfessionsSim:ChangeMaterials(materialRank)
 
 									ProfessionsSim.SchematicForm:TriggerEvent(ProfessionsRecipeSchematicFormMixin.Event.AllocationsModified);
 								end
-
+								
+								-- The existing modification should never produce a warning, and we only want a warning if the new
+								-- allocation would deallocate the modification.
 								local modification = ProfessionsSim.SchematicForm.transaction:GetModification(reagentSlotSchematic.dataSlotIndex);
-								local allocate = not (modification and ProfessionsSim.SchematicForm.transaction:HasAllocatedItemID(modification.itemID));
-								if allocate then
+								local isIdenticalToModification = modification and (modification.itemID == item:GetItemID());
+								local wouldDeallocateModification = modification and ProfessionsSim.SchematicForm.transaction:HasAllocatedItemID(modification.itemID);
+								if isIdenticalToModification or not wouldDeallocateModification then
 									AllocateFlyoutItem();
 								else
 									local modItem = Item:CreateFromItemID(modification.itemID);
@@ -552,24 +571,59 @@ function ProfessionsSim:ChangeMaterials(materialRank)
 								end
 							end
 
-							flyout.GetElementsImplementation = function(self, filterOwned)
+							flyout.GetUndoElementImplementation = function(self)
+								if not slot:IsOriginalItemSet() then
+									return slot:GetOriginalItem();
+								end
+							end
+
+							flyout.GetElementsImplementation = function(self, filterAvailable)
 								local itemIDs = Professions.ExtractItemIDsFromCraftingReagents(reagentSlotSchematic.reagents);
-								local items = Professions.GenerateFlyoutItemsTable(itemIDs, filterOwned);
-								local elementData = {items = items};
+								local items = Professions.GenerateFlyoutItemsTable(itemIDs, filterAvailable);
+								local elementData = {items = items, forceAccumulateInventory = true};
 								return elementData;
 							end
 							
 							flyout.OnElementEnterImplementation = function(elementData, tooltip)
-								Professions.FlyoutOnElementEnterImplementation(elementData, tooltip, recipeID, ProfessionsSim.SchematicForm.transaction:GetAllocationItemGUID());
+								Professions.FlyoutOnElementEnterImplementation(elementData, tooltip, recipeID, ProfessionsSim.SchematicForm.transaction:GetAllocationItemGUID(), ProfessionsSim.SchematicForm.transaction);
 							end
+							
+							flyout.OnElementEnabledImplementation = function(button, elementData)
+								--[[local item = elementData.item;
+								if not ProfessionsSim.SchematicForm.transaction:AreAllRequirementsAllocated(item) then
+									return false;
+								end
 
-							flyout.OnElementEnabledImplementation = nil;
+								local recraftAllocation = ProfessionsSim.SchematicForm.transaction:GetRecraftAllocation();
+								if recraftAllocation and not C_TradeSkillUI.IsRecraftReagentValid(recraftAllocation, item:GetItemID()) then
+									return false;
+								end
+
+								 local quantity = nil;
+								if item:GetItemGUID() then
+									quantity = item:GetStackCount();
+								else
+									quantity = ItemUtil.GetCraftingReagentCount(item:GetItemID());
+								end
+
+								if quantity and quantity < reagentSlotSchematic.quantityRequired then
+									return false;
+								end ]]
+
+								return true;
+							end
+							
+							flyout.GetElementValidImplementation = function(button, elementData)
+								return true; --ProfessionsSim.SchematicForm.transaction:AreAllRequirementsAllocated(elementData.item);
+							end
 
 							flyout:Init(slot.Button, ProfessionsSim.SchematicForm.transaction);
 							flyout:RegisterCallback(ProfessionsItemFlyoutMixin.Event.ItemSelected, OnFlyoutItemSelected, slot);
+							flyout:RegisterCallback(ProfessionsItemFlyoutMixin.Event.ShiftClicked, OnFlyoutItemShiftClicked, slot);
+							flyout:RegisterCallback(ProfessionsItemFlyoutMixin.Event.UndoClicked, OnUndoClicked, slot);
 
-                            --Added below to override quantity and enable buttons
-                            for i=1, select("#", flyout.ScrollBox.ScrollTarget:GetChildren()) do
+                             --Added below to override quantity and enable buttons
+                             for i=1, select("#", flyout.ScrollBox.ScrollTarget:GetChildren()) do
                                 local flyoutButton = select(i, flyout.ScrollBox.ScrollTarget:GetChildren())
                                 flyoutButton:SetItemButtonCount(1)
                                 flyoutButton.enabled = true
