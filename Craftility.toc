@@ -4,6 +4,7 @@
 ## SavedVariables: CraftilityDB
 ## Author: Shanxy
 ## Version: 0.4
+## Dependencies: Blizzard_Professions
 
 embeds.xml
 
