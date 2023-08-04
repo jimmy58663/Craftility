@@ -1,9 +1,10 @@
-## Interface: 100100
+## Interface: 100105
 ## Title: Craftility
 ## Notes: 
 ## SavedVariables: CraftilityDB
 ## Author: Shanxy
-## Version: 0.4
+## Version: 0.4.1.p
+## Dependencies: Blizzard_Professions
 
 embeds.xml
 
